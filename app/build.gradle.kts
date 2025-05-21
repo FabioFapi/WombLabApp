@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
     id("org.jetbrains.kotlin.plugin.serialization")
+    alias(libs.plugins.hilt)
+    id("kotlin-kapt")
 }
 
 android {
@@ -76,4 +78,7 @@ dependencies {
     implementation (libs.firebase.auth.ktx)
     implementation (libs.play.services.auth)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.hilt.core)
+    kapt(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
 }
