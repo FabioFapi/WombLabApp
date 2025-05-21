@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "327632805229",
+    "project_id": "womblab-database",
+    "storage_bucket": "womblab-database.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:327632805229:android:30f5ee68d43f36dc0dce64",
+        "android_client_info": {
+          "package_name": "com.rix.womblab"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "327632805229-bjtjffifln1b5umvibcbb25d64rup02h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rix.womblab",
+            "certificate_hash": "7b4de58dff1fc85f0a0afea47e1eaf6cf9827947"
+          }
+        },
+        {
+          "client_id": "327632805229-8jmrm0qn9mgvqganr31p1blih1cdpp9t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3hSVSk5GXXtXnDSLhd-Q5DaDYQs8GHi8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "327632805229-8jmrm0qn9mgvqganr31p1blih1cdpp9t.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
