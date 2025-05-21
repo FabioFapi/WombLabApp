@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 android {
@@ -61,6 +62,18 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.coil.compose)
     implementation (libs.androidx.datastore.preferences)
-
-
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation (libs.kotlinx.serialization.json)
+    implementation (libs.androidx.activity.compose.v190)
+    implementation (libs.androidx.navigation.compose)
+    implementation (libs.androidx.lifecycle.runtime.ktx)
+    implementation (libs.androidx.lifecycle.viewmodel.compose)
+    implementation (libs.material3)
+    implementation (platform(libs.firebase.bom))
+    implementation (libs.firebase.auth.ktx)
+    implementation (libs.play.services.auth)
+    implementation(libs.androidx.core.splashscreen)
 }
