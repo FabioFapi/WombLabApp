@@ -33,4 +33,4 @@ App Android ufficiale di **Womblab**, realizzata con **Jetpack Compose**, **Fire
 1. Clona la repo:
 
 ```bash
-git clone https://github.com/tuo-username/womblab.git
+git clone https://github.com/FabioFapi/WombLabApp.git
