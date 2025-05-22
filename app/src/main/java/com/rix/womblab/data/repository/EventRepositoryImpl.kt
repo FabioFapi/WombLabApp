@@ -3,6 +3,8 @@ package com.rix.womblab.data.repository
 import com.rix.womblab.data.local.dao.EventDao
 import com.rix.womblab.data.local.dao.FavoriteDao
 import com.rix.womblab.data.local.entities.FavoriteEntity
+import com.rix.womblab.data.local.entities.toDomain
+import com.rix.womblab.data.local.entities.toEntity
 import com.rix.womblab.data.remote.api.WordPressApi
 import com.rix.womblab.data.remote.dto.toDomain
 import com.rix.womblab.domain.model.*
@@ -30,7 +32,7 @@ class EventRepositoryImpl @Inject constructor(
             val cachedEvents = eventDao.getAllEvents()
             cachedEvents.collect { entities ->
                 if (entities.isNotEmpty()) {
-                    val events = entities.map { it.toDomain() }
+                    val events = entities.map { entity -> entity.toDomain() }
                     val response = EventsResponse(
                         events = events,
                         total = events.size,
@@ -59,7 +61,7 @@ class EventRepositoryImpl @Inject constructor(
                 response.body()?.let { apiResponse ->
                     val domainResponse = apiResponse.toDomain()
 
-                    val entities = domainResponse.events.map { it.toEntity() }
+                    val entities = domainResponse.events.map { event -> event.toEntity() }
                     eventDao.insertEvents(entities)
 
                     emit(Resource.Success(domainResponse))
@@ -79,7 +81,7 @@ class EventRepositoryImpl @Inject constructor(
         try {
             eventDao.getUpcomingEvents().collect { entities ->
                 if (entities.isNotEmpty()) {
-                    val events = entities.map { it.toDomain() }
+                    val events = entities.map { entity -> entity.toDomain() }
                     emit(Resource.Success(events))
                 }
             }
@@ -93,9 +95,9 @@ class EventRepositoryImpl @Inject constructor(
 
             if (response.isSuccessful) {
                 response.body()?.let { apiResponse ->
-                    val events = apiResponse.events.map { it.toDomain() }
+                    val events = apiResponse.events.map { eventDto -> eventDto.toDomain() }
 
-                    val entities = events.map { it.toEntity() }
+                    val entities = events.map { event -> event.toEntity() }
                     eventDao.insertEvents(entities)
 
                     emit(Resource.Success(events))
@@ -115,7 +117,7 @@ class EventRepositoryImpl @Inject constructor(
         try {
             eventDao.getFeaturedEvents().collect { entities ->
                 if (entities.isNotEmpty()) {
-                    val events = entities.map { it.toDomain() }
+                    val events = entities.map { entity -> entity.toDomain() }
                     emit(Resource.Success(events))
                 }
             }
@@ -124,9 +126,9 @@ class EventRepositoryImpl @Inject constructor(
 
             if (response.isSuccessful) {
                 response.body()?.let { apiResponse ->
-                    val events = apiResponse.events.map { it.toDomain() }
+                    val events = apiResponse.events.map { eventDto -> eventDto.toDomain() }
 
-                    val entities = events.map { it.toEntity() }
+                    val entities = events.map { event -> event.toEntity() }
                     eventDao.insertEvents(entities)
 
                     emit(Resource.Success(events))
@@ -229,9 +231,9 @@ class EventRepositoryImpl @Inject constructor(
 
             if (response.isSuccessful) {
                 response.body()?.let { apiResponse ->
-                    val events = apiResponse.events.map { it.toDomain() }
+                    val events = apiResponse.events.map { eventDto -> eventDto.toDomain() }
 
-                    val entities = events.map { it.toEntity() }
+                    val entities = events.map { event -> event.toEntity() }
                     eventDao.insertEvents(entities)
 
                     Resource.Success(events)
@@ -257,8 +259,8 @@ class EventRepositoryImpl @Inject constructor(
 
             if (response.isSuccessful) {
                 response.body()?.let { apiResponse ->
-                    val events = apiResponse.events.map { it.toDomain() }
-                    val entities = events.map { it.toEntity() }
+                    val events = apiResponse.events.map { eventDto -> eventDto.toDomain() }
+                    val entities = events.map { event -> event.toEntity() }
                     eventDao.insertEvents(entities)
                 }
                 Resource.Success(Unit)
