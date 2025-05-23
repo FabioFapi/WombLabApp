@@ -28,13 +28,21 @@ data class EventDto(
     @SerialName("all_day")
     val allDay: Boolean,
     @SerialName("start_date")
-    val startDate: String,
+    val startDate: String? = null,
     @SerialName("end_date")
-    val endDate: String,
+    val endDate: String? = null,
+    @SerialName("utc_start_date")
+    val utcStartDate: String? = null,
+    @SerialName("utc_end_date")
+    val utcEndDate: String? = null,
     @SerialName("start_date_details")
-    val startDateDetails: DateDetailsDto,
+    val startDateDetails: DateDetailsDto? = null,
     @SerialName("end_date_details")
-    val endDateDetails: DateDetailsDto,
+    val endDateDetails: DateDetailsDto? = null,
+    @SerialName("utc_start_date_details")
+    val utcStartDateDetails: DateDetailsDto? = null,
+    @SerialName("utc_end_date_details")
+    val utcEndDateDetails: DateDetailsDto? = null,
     val timezone: String,
     @SerialName("timezone_abbr")
     val timezoneAbbr: String,
@@ -82,12 +90,12 @@ data class ImageSizeDto(
 
 @Serializable
 data class DateDetailsDto(
-    val year: String,
-    val month: String,
-    val day: String,
-    val hour: String,
-    val minutes: String,
-    val seconds: String
+    val year: String = "2025",
+    val month: String = "01",
+    val day: String = "01",
+    val hour: String = "00",
+    val minutes: String = "00",
+    val seconds: String = "00"
 )
 
 @Serializable

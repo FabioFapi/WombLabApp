@@ -13,6 +13,7 @@ import com.rix.womblab.utils.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -86,6 +87,7 @@ class EventRepositoryImpl @Inject constructor(
                 }
             }
 
+            // Poi API
             val currentDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
             val response = wordPressApi.getUpcomingEvents(
                 page = page,
@@ -115,11 +117,11 @@ class EventRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
 
         try {
-            eventDao.getFeaturedEvents().collect { entities ->
-                if (entities.isNotEmpty()) {
-                    val events = entities.map { entity -> entity.toDomain() }
-                    emit(Resource.Success(events))
-                }
+            val cachedEntities = eventDao.getFeaturedEvents().first()
+            if (cachedEntities.isNotEmpty()) {
+                val events = cachedEntities.map { entity -> entity.toDomain() }
+                emit(Resource.Success(events))
+                return@flow
             }
 
             val response = wordPressApi.getFeaturedEvents()
@@ -132,13 +134,17 @@ class EventRepositoryImpl @Inject constructor(
                     eventDao.insertEvents(entities)
 
                     emit(Resource.Success(events))
+                } ?: run {
+                    emit(Resource.Error("Response vuota"))
                 }
             } else {
-                emit(Resource.Error("Errore nel caricamento eventi in evidenza: ${response.message()}"))
+                val errorMsg = "Errore API: ${response.code()} - ${response.message()}"
+                emit(Resource.Error(errorMsg))
             }
 
         } catch (e: Exception) {
-            emit(Resource.Error("Errore di rete: ${e.message}"))
+            val errorMsg = "Errore di rete: ${e.message}"
+            emit(Resource.Error(errorMsg))
         }
     }
 

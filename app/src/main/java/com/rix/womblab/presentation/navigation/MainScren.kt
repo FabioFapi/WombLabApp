@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -13,6 +12,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.rix.womblab.presentation.calendar.CalendarScreen
+import com.rix.womblab.presentation.detail.EventDetailScreen
 import com.rix.womblab.presentation.home.HomeScreen
 import com.rix.womblab.presentation.profile.ProfileScreen
 
@@ -89,24 +89,6 @@ fun MainScreen() {
                     onBack = { navController.popBackStack() }
                 )
             }
-        }
-    }
-}
-
-// Placeholder per EventDetailScreen
-@Composable
-private fun EventDetailScreen(
-    eventId: String,
-    onBack: () -> Unit
-) {
-    androidx.compose.foundation.layout.Column(
-        modifier = androidx.compose.ui.Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        androidx.compose.material3.Text("Event Detail: $eventId")
-        androidx.compose.material3.Button(onClick = onBack) {
-            androidx.compose.material3.Text("Indietro")
         }
     }
 }
