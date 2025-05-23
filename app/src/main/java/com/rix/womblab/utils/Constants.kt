@@ -23,6 +23,7 @@ object Constants {
     const val PREF_USER_ID = "user_id"
     const val PREF_LAST_REFRESH = "last_refresh"
     const val PREF_ONBOARDING_COMPLETED = "onboarding_completed"
+    const val PREF_REGISTRATION_COMPLETED = "registration_completed"
 
     // Date Formats
     const val DATE_FORMAT_API = "yyyy-MM-dd HH:mm:ss"
@@ -43,5 +44,62 @@ object Constants {
             "Anestesia",
             "Cardiologia",
             "Medicina"
+        )
+
+    // Medical Professions
+    val MEDICAL_PROFESSIONS
+        get() = listOf(
+            "Medico Chirurgo",
+            "Odontoiatra",
+            "Veterinario",
+            "Farmacista",
+            "Biologo",
+            "Infermiere",
+            "Ostetrica/o",
+            "Fisioterapista",
+            "Tecnico di Radiologia",
+            "Tecnico di Laboratorio",
+            "Dietista",
+            "Logopedista",
+            "Psicologo",
+            "Assistente Sanitario",
+            "Tecnico della Prevenzione",
+            "Igienista Dentale",
+            "Ortottista",
+            "Terapista Occupazionale",
+            "Tecnico Ortopedico",
+            "Tecnico Audiometrista",
+            "Tecnico Neurofisiopatologia",
+            "Tecnico della Riabilitazione Psichiatrica",
+            "Educatore Professionale",
+            "Altro"
+        )
+
+    // Specializations (Medical)
+    val MEDICAL_SPECIALIZATIONS
+        get() = listOf(
+            "Anestesia e Rianimazione",
+            "Cardiologia",
+            "Chirurgia Generale",
+            "Chirurgia Vascolare",
+            "Dermatologia",
+            "Endocrinologia",
+            "Gastroenterologia",
+            "Ginecologia e Ostetricia",
+            "Medicina Interna",
+            "Neurologia",
+            "Oncologia",
+            "Ortopedia",
+            "Pediatria",
+            "Pneumologia",
+            "Psichiatria",
+            "Radiologia",
+            "Urologia",
+            "Medicina d'Urgenza",
+            "Medicina del Lavoro",
+            "Medicina Legale",
+            "Igiene e Sanità Pubblica",
+            "Medicina Fisica e Riabilitativa",
+            "Altro"
         )
 }

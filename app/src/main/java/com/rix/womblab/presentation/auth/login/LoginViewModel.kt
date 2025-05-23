@@ -20,7 +20,8 @@ data class LoginState(
     val isLoading: Boolean = false,
     val user: User? = null,
     val error: String? = null,
-    val isLoggedIn: Boolean = false
+    val isLoggedIn: Boolean = false,
+    val isRegistrationComplete: Boolean = false
 )
 
 @HiltViewModel
@@ -49,10 +50,15 @@ class LoginViewModel @Inject constructor(
                         photoUrl = firebaseUser.photoUrl?.toString(),
                         isEmailVerified = firebaseUser.isEmailVerified
                     )
+
+                    // Check if registration is completed
+                    val isRegistrationCompleted = authRepository.isRegistrationCompleted(firebaseUser.uid)
+
                     _loginState.value = LoginState(
                         isLoading = false,
                         user = user,
                         isLoggedIn = true,
+                        isRegistrationComplete = isRegistrationCompleted,
                         error = null
                     )
                 } else {
@@ -60,6 +66,7 @@ class LoginViewModel @Inject constructor(
                         isLoading = false,
                         user = null,
                         isLoggedIn = false,
+                        isRegistrationComplete = false,
                         error = null
                     )
                 }
@@ -79,10 +86,16 @@ class LoginViewModel @Inject constructor(
             if (account != null) {
                 when (val result = loginUseCase(account)) {
                     is Resource.Success -> {
+                        val user = result.data!!
+
+                        // Check if registration is completed
+                        val isRegistrationCompleted = authRepository.isRegistrationCompleted(user.id)
+
                         _loginState.value = LoginState(
                             isLoading = false,
-                            user = result.data,
+                            user = user,
                             isLoggedIn = true,
+                            isRegistrationComplete = isRegistrationCompleted,
                             error = null
                         )
                     }
@@ -91,6 +104,7 @@ class LoginViewModel @Inject constructor(
                             isLoading = false,
                             user = null,
                             isLoggedIn = false,
+                            isRegistrationComplete = false,
                             error = result.message
                         )
                     }
@@ -103,6 +117,7 @@ class LoginViewModel @Inject constructor(
                     isLoading = false,
                     user = null,
                     isLoggedIn = false,
+                    isRegistrationComplete = false,
                     error = "Login Google annullato"
                 )
             }
@@ -119,6 +134,7 @@ class LoginViewModel @Inject constructor(
                         isLoading = false,
                         user = null,
                         isLoggedIn = false,
+                        isRegistrationComplete = false,
                         error = null
                     )
                 }

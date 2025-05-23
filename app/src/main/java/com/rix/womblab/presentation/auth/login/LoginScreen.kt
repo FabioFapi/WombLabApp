@@ -24,7 +24,7 @@ import com.rix.womblab.presentation.theme.WombLabTheme
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (needsRegistration: Boolean) -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val loginState by viewModel.loginState.collectAsStateWithLifecycle()
@@ -38,9 +38,9 @@ fun LoginScreen(
     }
 
     // Effetto per navigare dopo login riuscito
-    LaunchedEffect(loginState.isLoggedIn) {
+    LaunchedEffect(loginState.isLoggedIn, loginState.isRegistrationComplete) {
         if (loginState.isLoggedIn && loginState.user != null) {
-            onLoginSuccess()
+            onLoginSuccess(!loginState.isRegistrationComplete)
         }
     }
 
@@ -191,6 +191,6 @@ private fun LoginButton(
 @Composable
 fun LoginScreenPreview() {
     WombLabTheme {
-        LoginScreen(onLoginSuccess = {})
+        LoginScreen(onLoginSuccess = { })
     }
 }

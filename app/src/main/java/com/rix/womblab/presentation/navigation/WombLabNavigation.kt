@@ -17,6 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.rix.womblab.presentation.auth.login.LoginScreen
 import com.rix.womblab.presentation.auth.login.LoginViewModel
+import com.rix.womblab.presentation.auth.register.RegisterScreen
 import com.rix.womblab.presentation.calendar.CalendarScreen
 import com.rix.womblab.presentation.home.HomeScreen
 import com.rix.womblab.presentation.profile.ProfileScreen
@@ -38,6 +39,11 @@ fun WombLabNavigation(
                         popUpTo(Screen.Splash.route) { inclusive = true }
                     }
                 },
+                onNavigateToRegister = {
+                    navController.navigate(Screen.Register.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                },
                 onNavigateToMain = {
                     navController.navigate(Screen.Main.route) {
                         popUpTo(Screen.Splash.route) { inclusive = true }
@@ -49,9 +55,29 @@ fun WombLabNavigation(
         // Login Screen
         composable(Screen.Login.route) {
             LoginScreen(
-                onLoginSuccess = {
+                onLoginSuccess = { needsRegistration ->
+                    if (needsRegistration) {
+                        navController.navigate(Screen.Register.route) {
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate(Screen.Main.route) {
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        }
+                    }
+                }
+            )
+        }
+
+        // Register Screen
+        composable(Screen.Register.route) {
+            RegisterScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onRegistrationSuccess = {
                     navController.navigate(Screen.Main.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
+                        popUpTo(Screen.Register.route) { inclusive = true }
                     }
                 }
             )
@@ -67,6 +93,7 @@ fun WombLabNavigation(
 @Composable
 private fun SplashScreen(
     onNavigateToLogin: () -> Unit,
+    onNavigateToRegister: () -> Unit,
     onNavigateToMain: () -> Unit,
     loginViewModel: LoginViewModel = hiltViewModel()
 ) {
@@ -75,10 +102,19 @@ private fun SplashScreen(
     androidx.compose.runtime.LaunchedEffect(Unit) {
         kotlinx.coroutines.delay(2000)
 
-        if (loginState.isLoggedIn) {
-            onNavigateToMain()
-        } else {
-            onNavigateToLogin()
+        when {
+            !loginState.isLoggedIn -> {
+                onNavigateToLogin()
+            }
+            loginState.isLoggedIn && !loginState.isRegistrationComplete -> {
+                onNavigateToRegister()
+            }
+            loginState.isLoggedIn && loginState.isRegistrationComplete -> {
+                onNavigateToMain()
+            }
+            else -> {
+                onNavigateToLogin()
+            }
         }
     }
 

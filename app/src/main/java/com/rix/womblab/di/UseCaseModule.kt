@@ -35,6 +35,12 @@ object UseCaseModule {
 
     @Provides
     @Singleton
+    fun provideUpdateUserProfileUseCase(
+        authRepository: AuthRepository
+    ): UpdateUserProfileUseCase = UpdateUserProfileUseCase(authRepository)
+
+    @Provides
+    @Singleton
     fun provideGetEventsUseCase(
         eventRepository: EventRepository
     ): GetEventsUseCase = GetEventsUseCase(eventRepository)

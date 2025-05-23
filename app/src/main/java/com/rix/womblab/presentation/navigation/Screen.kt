@@ -6,6 +6,8 @@ sealed class Screen(val route: String) {
 
     data object Login : Screen("login")
 
+    data object Register : Screen("register")
+
     data object Home : Screen("home")
     data object Calendar : Screen("calendar")
     data object Profile : Screen("profile")
@@ -19,6 +21,7 @@ sealed class Screen(val route: String) {
 object NavigationRoutes {
     const val SPLASH = "splash"
     const val LOGIN = "login"
+    const val REGISTER = "register"
     const val MAIN = "main"
     const val HOME = "home"
     const val CALENDAR = "calendar"
