@@ -65,7 +65,6 @@ class AuthRepositoryImpl @Inject constructor(
                     isEmailVerified = firebaseUser.isEmailVerified
                 )
 
-                // Store user ID in preferences
                 preferencesUtils.setUserId(firebaseUser.uid)
 
                 WombLabResource.Success(user)
@@ -101,15 +100,12 @@ class AuthRepositoryImpl @Inject constructor(
 
     override fun isUserLoggedIn(): Boolean = firebaseAuth.currentUser != null
 
-    // Semplificato: salva solo nelle SharedPreferences
     override suspend fun updateUserProfile(user: User, profile: UserProfile): WombLabResource<User> {
         return try {
-            println("🚀 AuthRepository: Saving profile to SharedPreferences")
 
             preferencesUtils.setUserProfile(profile)
             preferencesUtils.setRegistrationCompleted(true)
 
-            println("✅ AuthRepository: Profile saved successfully")
 
             val updatedUser = user.copy(
                 displayName = "${profile.firstName} ${profile.lastName}"
@@ -117,7 +113,6 @@ class AuthRepositoryImpl @Inject constructor(
 
             WombLabResource.Success(updatedUser)
         } catch (e: Exception) {
-            println("❌ AuthRepository: Error saving profile: ${e.message}")
             WombLabResource.Error(e.message ?: "Errore durante l'aggiornamento del profilo")
         }
     }

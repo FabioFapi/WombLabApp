@@ -18,7 +18,9 @@ import com.rix.womblab.presentation.profile.ProfileScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    onLogout: () -> Unit = {}
+) {
     val navController = rememberNavController()
 
     Scaffold(
@@ -79,7 +81,9 @@ fun MainScreen() {
             }
 
             composable(Screen.Profile.route) {
-                ProfileScreen()
+                ProfileScreen(
+                    onLogoutSuccess = onLogout
+                )
             }
 
             composable(Screen.EventDetail.route) { backStackEntry ->

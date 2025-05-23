@@ -37,7 +37,6 @@ fun RegisterScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
 
-    // Handle registration success
     LaunchedEffect(uiState.isRegistrationComplete) {
         println("🚀 RegisterScreen: isRegistrationComplete = ${uiState.isRegistrationComplete}")
         if (uiState.isRegistrationComplete) {
@@ -46,17 +45,14 @@ fun RegisterScreen(
         }
     }
 
-    // Handle errors
     LaunchedEffect(uiState.error) {
         uiState.error?.let { error ->
             println("❌ Registration Error: $error")
         }
     }
 
-    // Show snackbar for errors
     uiState.error?.let { error ->
         LaunchedEffect(error) {
-            // Clear error after showing
             viewModel.clearError()
         }
     }
@@ -101,19 +97,16 @@ fun RegisterScreen(
             ) {
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Welcome Section
                 WelcomeSection(userName = uiState.currentUser?.displayName ?: "")
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Show error if user is not authenticated
                 if (uiState.currentUser == null && !uiState.isLoading) {
                     ErrorCard(
                         error = uiState.error ?: "Utente non autenticato",
                         onRetry = onNavigateBack
                     )
                 } else {
-                    // Registration Form
                     RegistrationForm(
                         uiState = uiState,
                         onFirstNameChange = viewModel::onFirstNameChange,
@@ -132,10 +125,8 @@ fun RegisterScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Terms and Privacy
                 TermsAndPrivacy()
 
-                // Show error message if any
                 uiState.error?.let { error ->
                     Spacer(modifier = Modifier.height(16.dp))
                     Card(
@@ -224,7 +215,6 @@ private fun WelcomeSection(userName: String) {
             modifier = Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Logo
             Text(
                 text = "🔬",
                 fontSize = 48.sp
@@ -280,7 +270,6 @@ private fun RegistrationForm(
             modifier = Modifier.padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Personal Information Section
             SectionTitle("Informazioni Personali")
 
             Row(
@@ -316,7 +305,6 @@ private fun RegistrationForm(
                 )
             }
 
-            // Professional Information Section
             SectionTitle("Informazioni Professionali")
 
             ProfessionDropdown(
@@ -352,7 +340,6 @@ private fun RegistrationForm(
                 )
             )
 
-            // Contact Information Section
             SectionTitle("Informazioni di Contatto")
 
             OutlinedTextField(
@@ -384,10 +371,8 @@ private fun RegistrationForm(
                 )
             )
 
-            // Preferences Section
             SectionTitle("Preferenze")
 
-            // Newsletter Checkbox
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -407,7 +392,6 @@ private fun RegistrationForm(
                 )
             }
 
-            // Notifications Checkbox
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -429,13 +413,8 @@ private fun RegistrationForm(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Complete Registration Button
             Button(
                 onClick = {
-                    println("🚀 RegisterScreen: Button clicked")
-                    println("🚀 Form valid: ${uiState.isFormValid}")
-                    println("🚀 Loading: $isLoading")
-                    println("🚀 Form data: ${uiState.firstName}, ${uiState.lastName}, ${uiState.profession}")
                     onCompleteRegistration()
                 },
                 enabled = !isLoading && uiState.isFormValid,

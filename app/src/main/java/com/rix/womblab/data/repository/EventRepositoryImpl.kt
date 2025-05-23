@@ -87,7 +87,6 @@ class EventRepositoryImpl @Inject constructor(
                 }
             }
 
-            // Poi API
             val currentDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
             val response = wordPressApi.getUpcomingEvents(
                 page = page,

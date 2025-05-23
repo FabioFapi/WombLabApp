@@ -30,25 +30,20 @@ fun LoginScreen(
     val loginState by viewModel.loginState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    // Launcher per Google Sign-In
     val googleSignInLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         viewModel.handleGoogleSignInResult(result.data)
     }
 
-    // Effetto per navigare dopo login riuscito
     LaunchedEffect(loginState.isLoggedIn, loginState.isRegistrationComplete) {
         if (loginState.isLoggedIn && loginState.user != null) {
             onLoginSuccess(!loginState.isRegistrationComplete)
         }
     }
 
-    // Mostra errori
     loginState.error?.let { error ->
         LaunchedEffect(error) {
-            // Qui potresti mostrare uno Snackbar
-            println("Login Error: $error")
         }
     }
 
@@ -58,8 +53,8 @@ fun LoginScreen(
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFF006B5B), // WombLab Primary
-                        Color(0xFF004D42)  // WombLab Primary Dark
+                        Color(0xFF006B5B),
+                        Color(0xFF004D42)
                     )
                 )
             )
@@ -72,7 +67,6 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center
         ) {
 
-            // Logo WombLab
             Card(
                 modifier = Modifier
                     .size(120.dp)
@@ -96,7 +90,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Titolo
             Text(
                 text = "WombLab",
                 fontSize = 32.sp,
@@ -107,7 +100,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Sottotitolo
             Text(
                 text = "La tua app per eventi del benessere",
                 fontSize = 16.sp,
@@ -117,7 +109,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Bottone Login con Google
             LoginButton(
                 onClick = {
                     val signInIntent = viewModel.getGoogleSignInIntent()
@@ -128,7 +119,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Disclaimer
             Text(
                 text = "Accedendo accetti i nostri Termini di Servizio e la Privacy Policy",
                 fontSize = 12.sp,

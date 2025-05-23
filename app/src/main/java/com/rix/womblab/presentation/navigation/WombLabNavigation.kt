@@ -30,7 +30,6 @@ fun WombLabNavigation(
         navController = navController,
         startDestination = startDestination
     ) {
-        // Splash Screen
         composable(Screen.Splash.route) {
             SplashScreen(
                 onNavigateToLogin = {
@@ -51,7 +50,6 @@ fun WombLabNavigation(
             )
         }
 
-        // Login Screen
         composable(Screen.Login.route) {
             LoginScreen(
                 onLoginSuccess = { needsRegistration ->
@@ -68,17 +66,14 @@ fun WombLabNavigation(
             )
         }
 
-        // Register Screen
         composable(Screen.Register.route) {
             RegisterScreen(
                 onNavigateBack = {
-                    println("🚀 Navigation: onNavigateBack called")
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Register.route) { inclusive = true }
                     }
                 },
                 onRegistrationSuccess = {
-                    println("🚀 Navigation: onRegistrationSuccess called")
                     navController.navigate(Screen.Main.route) {
                         popUpTo(Screen.Register.route) { inclusive = true }
                     }
@@ -86,9 +81,14 @@ fun WombLabNavigation(
             )
         }
 
-        // Main App con Bottom Navigation
         composable(Screen.Main.route) {
-            MainScreen()
+            MainScreen(
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
         }
     }
 }
@@ -103,38 +103,26 @@ private fun SplashScreen(
     val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        // Aspetta 2 secondi per mostrare lo splash
         delay(2000)
 
-        // Naviga in base allo stato dell'autenticazione
         when {
-            // Utente non autenticato -> Login
             !loginState.isLoggedIn -> {
-                println("🚀 Splash: Utente non autenticato -> Login")
                 onNavigateToLogin()
             }
-            // Utente autenticato ma registrazione non completata -> Register
             loginState.isLoggedIn && !loginState.isRegistrationComplete -> {
-                println("🚀 Splash: Utente autenticato ma registrazione incompleta -> Register")
                 onNavigateToRegister()
             }
-            // Utente autenticato e registrazione completata -> Main
             loginState.isLoggedIn && loginState.isRegistrationComplete -> {
-                println("🚀 Splash: Utente pronto -> Main")
                 onNavigateToMain()
             }
-            // Fallback -> Login
             else -> {
-                println("🚀 Splash: Fallback -> Login")
                 onNavigateToLogin()
             }
         }
     }
 
-    // Mostra messaggio di debug se c'è un errore
     LaunchedEffect(loginState.error) {
         loginState.error?.let { error ->
-            println("🚀 Splash Error: $error")
         }
     }
 
@@ -187,7 +175,6 @@ private fun SplashScreen(
 
             androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.height(16.dp))
 
-            // Stato di debug
             androidx.compose.material3.Text(
                 text = when {
                     loginState.isLoading -> "Controllo autenticazione..."

@@ -90,7 +90,6 @@ fun EventTagDto.toDomain(): EventTag {
     )
 }
 
-// Utility functions
 private fun parseEventDateFromDetails(
     utcDateString: String?,
     localDateString: String?,
