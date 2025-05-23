@@ -64,6 +64,11 @@ class RegisterViewModel @Inject constructor(
                         firstName = extractFirstName(user.displayName),
                         lastName = extractLastName(user.displayName)
                     )
+                } else {
+                    // Se non c'è un utente autenticato, è un errore
+                    _uiState.value = _uiState.value.copy(
+                        error = "Utente non autenticato. Effettua prima il login."
+                    )
                 }
             }
         }
@@ -115,35 +120,50 @@ class RegisterViewModel @Inject constructor(
     }
 
     fun completeRegistration() {
+        println("🚀 RegisterViewModel: completeRegistration() called")
         val currentState = _uiState.value
+        println("🚀 Current state: isFormValid=${currentState.isFormValid}, currentUser=${currentState.currentUser?.id}")
 
+        // Validation
         if (!currentState.isFormValid) {
+            println("❌ Form not valid: firstName='${currentState.firstName}', lastName='${currentState.lastName}', profession='${currentState.profession}'")
             _uiState.value = currentState.copy(
-                error = "Compila tutti i campi obbligatori"
+                error = "Compila tutti i campi obbligatori: nome, cognome e professione"
             )
             return
         }
 
+        if (currentState.currentUser == null) {
+            println("❌ Current user is null")
+            _uiState.value = currentState.copy(
+                error = "Errore: utente non trovato. Rieffettua il login."
+            )
+            return
+        }
+
+        println("🚀 Starting registration process...")
         viewModelScope.launch {
             _uiState.value = currentState.copy(isLoading = true, error = null)
 
-            val updatedUser = currentState.currentUser?.copy(
-                displayName = "${currentState.firstName} ${currentState.lastName}",
-                preferences = UserPreferences(
-                    notificationsEnabled = currentState.wantsNotifications,
-                    emailNotifications = currentState.wantsNewsletter,
-                    pushNotifications = currentState.wantsNotifications,
-                    favoriteCategories = if (currentState.profession.isNotBlank()) {
-                        listOf(currentState.profession)
-                    } else {
-                        emptyList()
-                    }
+            try {
+                val updatedUser = currentState.currentUser.copy(
+                    displayName = "${currentState.firstName} ${currentState.lastName}",
+                    preferences = UserPreferences(
+                        notificationsEnabled = currentState.wantsNotifications,
+                        emailNotifications = currentState.wantsNewsletter,
+                        pushNotifications = currentState.wantsNotifications,
+                        favoriteCategories = if (currentState.profession.isNotBlank()) {
+                            listOf(currentState.profession)
+                        } else {
+                            emptyList()
+                        }
+                    )
                 )
-            )
 
-            if (updatedUser != null) {
+                println("🚀 Calling updateUserProfileUseCase...")
                 when (val result = updateUserProfileUseCase(updatedUser, currentState.toUserProfile())) {
                     is Resource.Success -> {
+                        println("✅ Registration completed successfully!")
                         _uiState.value = currentState.copy(
                             isLoading = false,
                             isRegistrationComplete = true,
@@ -151,19 +171,22 @@ class RegisterViewModel @Inject constructor(
                         )
                     }
                     is Resource.Error -> {
+                        println("❌ Registration failed: ${result.message}")
                         _uiState.value = currentState.copy(
                             isLoading = false,
-                            error = result.message ?: "Errore durante la registrazione"
+                            error = result.message ?: "Errore durante il completamento della registrazione"
                         )
                     }
                     is Resource.Loading -> {
+                        println("🔄 Registration loading...")
                         // Already handled above
                     }
                 }
-            } else {
+            } catch (e: Exception) {
+                println("❌ Exception during registration: ${e.message}")
                 _uiState.value = currentState.copy(
                     isLoading = false,
-                    error = "Errore: utente non trovato"
+                    error = "Errore imprevisto: ${e.message}"
                 )
             }
         }
@@ -187,15 +210,3 @@ class RegisterViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(error = null)
     }
 }
-
-data class UserProfile(
-    val firstName: String,
-    val lastName: String,
-    val profession: String,
-    val specialization: String? = null,
-    val workplace: String? = null,
-    val city: String? = null,
-    val phone: String? = null,
-    val wantsNewsletter: Boolean = true,
-    val wantsNotifications: Boolean = true
-)

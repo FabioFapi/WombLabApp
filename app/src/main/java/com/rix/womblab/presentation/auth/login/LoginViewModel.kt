@@ -41,6 +41,8 @@ class LoginViewModel @Inject constructor(
 
     private fun checkCurrentUser() {
         viewModelScope.launch {
+            _loginState.value = _loginState.value.copy(isLoading = true)
+
             getCurrentUserUseCase().collect { firebaseUser ->
                 if (firebaseUser != null) {
                     val user = User(
@@ -51,8 +53,11 @@ class LoginViewModel @Inject constructor(
                         isEmailVerified = firebaseUser.isEmailVerified
                     )
 
-                    // Check if registration is completed
-                    val isRegistrationCompleted = authRepository.isRegistrationCompleted(firebaseUser.uid)
+                    val isRegistrationCompleted = try {
+                        authRepository.isRegistrationCompleted(firebaseUser.uid)
+                    } catch (e: Exception) {
+                        false
+                    }
 
                     _loginState.value = LoginState(
                         isLoading = false,
@@ -82,43 +87,55 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             _loginState.value = _loginState.value.copy(isLoading = true, error = null)
 
-            val account = authRepository.getSignedInAccountFromIntent(data)
-            if (account != null) {
-                when (val result = loginUseCase(account)) {
-                    is Resource.Success -> {
-                        val user = result.data!!
+            try {
+                val account = authRepository.getSignedInAccountFromIntent(data)
+                if (account != null) {
+                    when (val result = loginUseCase(account)) {
+                        is Resource.Success -> {
+                            val user = result.data!!
 
-                        // Check if registration is completed
-                        val isRegistrationCompleted = authRepository.isRegistrationCompleted(user.id)
+                            val isRegistrationCompleted = try {
+                                authRepository.isRegistrationCompleted(user.id)
+                            } catch (e: Exception) {
+                                false
+                            }
 
-                        _loginState.value = LoginState(
-                            isLoading = false,
-                            user = user,
-                            isLoggedIn = true,
-                            isRegistrationComplete = isRegistrationCompleted,
-                            error = null
-                        )
+                            _loginState.value = LoginState(
+                                isLoading = false,
+                                user = user,
+                                isLoggedIn = true,
+                                isRegistrationComplete = isRegistrationCompleted,
+                                error = null
+                            )
+                        }
+                        is Resource.Error -> {
+                            _loginState.value = LoginState(
+                                isLoading = false,
+                                user = null,
+                                isLoggedIn = false,
+                                isRegistrationComplete = false,
+                                error = result.message ?: "Errore durante il login con Google"
+                            )
+                        }
+                        is Resource.Loading -> {
+                        }
                     }
-                    is Resource.Error -> {
-                        _loginState.value = LoginState(
-                            isLoading = false,
-                            user = null,
-                            isLoggedIn = false,
-                            isRegistrationComplete = false,
-                            error = result.message
-                        )
-                    }
-                    is Resource.Loading -> {
-                        // Già gestito sopra
-                    }
+                } else {
+                    _loginState.value = LoginState(
+                        isLoading = false,
+                        user = null,
+                        isLoggedIn = false,
+                        isRegistrationComplete = false,
+                        error = "Login Google annullato o fallito"
+                    )
                 }
-            } else {
+            } catch (e: Exception) {
                 _loginState.value = LoginState(
                     isLoading = false,
                     user = null,
                     isLoggedIn = false,
                     isRegistrationComplete = false,
-                    error = "Login Google annullato"
+                    error = "Errore durante il login: ${e.message}"
                 )
             }
         }
@@ -141,11 +158,10 @@ class LoginViewModel @Inject constructor(
                 is Resource.Error -> {
                     _loginState.value = _loginState.value.copy(
                         isLoading = false,
-                        error = result.message
+                        error = result.message ?: "Errore durante il logout"
                     )
                 }
                 is Resource.Loading -> {
-                    // Già gestito sopra
                 }
             }
         }

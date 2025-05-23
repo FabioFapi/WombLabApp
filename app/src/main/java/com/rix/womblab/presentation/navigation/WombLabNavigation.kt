@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
@@ -18,9 +19,7 @@ import androidx.navigation.compose.rememberNavController
 import com.rix.womblab.presentation.auth.login.LoginScreen
 import com.rix.womblab.presentation.auth.login.LoginViewModel
 import com.rix.womblab.presentation.auth.register.RegisterScreen
-import com.rix.womblab.presentation.calendar.CalendarScreen
-import com.rix.womblab.presentation.home.HomeScreen
-import com.rix.womblab.presentation.profile.ProfileScreen
+import kotlinx.coroutines.delay
 
 @Composable
 fun WombLabNavigation(
@@ -73,9 +72,13 @@ fun WombLabNavigation(
         composable(Screen.Register.route) {
             RegisterScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    println("🚀 Navigation: onNavigateBack called")
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Register.route) { inclusive = true }
+                    }
                 },
                 onRegistrationSuccess = {
+                    println("🚀 Navigation: onRegistrationSuccess called")
                     navController.navigate(Screen.Main.route) {
                         popUpTo(Screen.Register.route) { inclusive = true }
                     }
@@ -99,22 +102,39 @@ private fun SplashScreen(
 ) {
     val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
 
-    androidx.compose.runtime.LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(2000)
+    LaunchedEffect(Unit) {
+        // Aspetta 2 secondi per mostrare lo splash
+        delay(2000)
 
+        // Naviga in base allo stato dell'autenticazione
         when {
+            // Utente non autenticato -> Login
             !loginState.isLoggedIn -> {
+                println("🚀 Splash: Utente non autenticato -> Login")
                 onNavigateToLogin()
             }
+            // Utente autenticato ma registrazione non completata -> Register
             loginState.isLoggedIn && !loginState.isRegistrationComplete -> {
+                println("🚀 Splash: Utente autenticato ma registrazione incompleta -> Register")
                 onNavigateToRegister()
             }
+            // Utente autenticato e registrazione completata -> Main
             loginState.isLoggedIn && loginState.isRegistrationComplete -> {
+                println("🚀 Splash: Utente pronto -> Main")
                 onNavigateToMain()
             }
+            // Fallback -> Login
             else -> {
+                println("🚀 Splash: Fallback -> Login")
                 onNavigateToLogin()
             }
+        }
+    }
+
+    // Mostra messaggio di debug se c'è un errore
+    LaunchedEffect(loginState.error) {
+        loginState.error?.let { error ->
+            println("🚀 Splash Error: $error")
         }
     }
 
@@ -163,6 +183,22 @@ private fun SplashScreen(
                 fontSize = 32.sp,
                 fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                 color = androidx.compose.ui.graphics.Color.White
+            )
+
+            androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.height(16.dp))
+
+            // Stato di debug
+            androidx.compose.material3.Text(
+                text = when {
+                    loginState.isLoading -> "Controllo autenticazione..."
+                    loginState.error != null -> "Errore: ${loginState.error}"
+                    loginState.isLoggedIn && loginState.isRegistrationComplete -> "Benvenuto!"
+                    loginState.isLoggedIn && !loginState.isRegistrationComplete -> "Completa registrazione..."
+                    else -> "Caricamento..."
+                },
+                fontSize = 14.sp,
+                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.8f),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
 
             androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.height(24.dp))

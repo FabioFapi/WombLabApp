@@ -8,8 +8,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,8 +18,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -43,17 +39,25 @@ fun RegisterScreen(
 
     // Handle registration success
     LaunchedEffect(uiState.isRegistrationComplete) {
+        println("🚀 RegisterScreen: isRegistrationComplete = ${uiState.isRegistrationComplete}")
         if (uiState.isRegistrationComplete) {
+            println("✅ Registrazione completata, navigating to main")
             onRegistrationSuccess()
         }
     }
 
-    // Show error snackbar
+    // Handle errors
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let { error ->
+            println("❌ Registration Error: $error")
+        }
+    }
+
+    // Show snackbar for errors
     uiState.error?.let { error ->
         LaunchedEffect(error) {
-            // You can show a snackbar here
-            // For now, we'll just print the error
-            println("Registration Error: $error")
+            // Clear error after showing
+            viewModel.clearError()
         }
     }
 
@@ -102,26 +106,105 @@ fun RegisterScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Registration Form
-                RegistrationForm(
-                    uiState = uiState,
-                    onFirstNameChange = viewModel::onFirstNameChange,
-                    onLastNameChange = viewModel::onLastNameChange,
-                    onProfessionChange = viewModel::onProfessionChange,
-                    onSpecializationChange = viewModel::onSpecializationChange,
-                    onWorkplaceChange = viewModel::onWorkplaceChange,
-                    onCityChange = viewModel::onCityChange,
-                    onPhoneChange = viewModel::onPhoneChange,
-                    onNewsletterChange = viewModel::onNewsletterChange,
-                    onNotificationsChange = viewModel::onNotificationsChange,
-                    onCompleteRegistration = viewModel::completeRegistration,
-                    isLoading = uiState.isLoading
-                )
+                // Show error if user is not authenticated
+                if (uiState.currentUser == null && !uiState.isLoading) {
+                    ErrorCard(
+                        error = uiState.error ?: "Utente non autenticato",
+                        onRetry = onNavigateBack
+                    )
+                } else {
+                    // Registration Form
+                    RegistrationForm(
+                        uiState = uiState,
+                        onFirstNameChange = viewModel::onFirstNameChange,
+                        onLastNameChange = viewModel::onLastNameChange,
+                        onProfessionChange = viewModel::onProfessionChange,
+                        onSpecializationChange = viewModel::onSpecializationChange,
+                        onWorkplaceChange = viewModel::onWorkplaceChange,
+                        onCityChange = viewModel::onCityChange,
+                        onPhoneChange = viewModel::onPhoneChange,
+                        onNewsletterChange = viewModel::onNewsletterChange,
+                        onNotificationsChange = viewModel::onNotificationsChange,
+                        onCompleteRegistration = viewModel::completeRegistration,
+                        isLoading = uiState.isLoading
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(32.dp))
 
                 // Terms and Privacy
                 TermsAndPrivacy()
+
+                // Show error message if any
+                uiState.error?.let { error ->
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        )
+                    ) {
+                        Text(
+                            text = error,
+                            modifier = Modifier.padding(16.dp),
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ErrorCard(
+    error: String,
+    onRetry: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "⚠️",
+                fontSize = 48.sp
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Errore di Autenticazione",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onErrorContainer
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = error,
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = onRetry,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text("Torna al Login")
             }
         }
     }
@@ -348,7 +431,13 @@ private fun RegistrationForm(
 
             // Complete Registration Button
             Button(
-                onClick = onCompleteRegistration,
+                onClick = {
+                    println("🚀 RegisterScreen: Button clicked")
+                    println("🚀 Form valid: ${uiState.isFormValid}")
+                    println("🚀 Loading: $isLoading")
+                    println("🚀 Form data: ${uiState.firstName}, ${uiState.lastName}, ${uiState.profession}")
+                    onCompleteRegistration()
+                },
                 enabled = !isLoading && uiState.isFormValid,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -372,6 +461,21 @@ private fun RegistrationForm(
                         fontWeight = FontWeight.Medium
                     )
                 }
+            }
+
+            // Debug info
+            if (uiState.isFormValid) {
+                Text(
+                    text = "✅ Form valido",
+                    fontSize = 12.sp,
+                    color = Color(0xFF006B5B)
+                )
+            } else {
+                Text(
+                    text = "❌ Compila i campi obbligatori: Nome, Cognome, Professione",
+                    fontSize = 12.sp,
+                    color = Color.Red
+                )
             }
         }
     }
