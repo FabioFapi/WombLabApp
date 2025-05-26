@@ -55,14 +55,11 @@ class PreferencesUtils @Inject constructor(
         return prefs.getBoolean(Constants.PREF_ONBOARDING_COMPLETED, false)
     }
 
-    // Nuovi metodi per il profilo utente
     fun setUserProfile(profile: UserProfile) {
         try {
             val profileJson = json.encodeToString(profile)
             prefs.edit().putString(PREF_USER_PROFILE, profileJson).apply()
-            println("🚀 PreferencesUtils: Profile saved: $profileJson")
         } catch (e: Exception) {
-            println("❌ PreferencesUtils: Error saving profile: ${e.message}")
         }
     }
 
@@ -75,19 +72,16 @@ class PreferencesUtils @Inject constructor(
                 null
             }
         } catch (e: Exception) {
-            println("❌ PreferencesUtils: Error loading profile: ${e.message}")
             null
         }
     }
 
     fun setRegistrationCompleted(completed: Boolean) {
         prefs.edit().putBoolean(Constants.PREF_REGISTRATION_COMPLETED, completed).apply()
-        println("🚀 PreferencesUtils: Registration completed set to: $completed")
     }
 
     fun isRegistrationCompleted(): Boolean {
         val completed = prefs.getBoolean(Constants.PREF_REGISTRATION_COMPLETED, false)
-        println("🚀 PreferencesUtils: Registration completed: $completed")
         return completed
     }
 

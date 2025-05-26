@@ -1,25 +1,27 @@
 package com.rix.womblab.presentation.components
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -32,8 +34,38 @@ import coil.request.ImageRequest
 import com.rix.womblab.domain.model.Event
 import com.rix.womblab.domain.model.EventVenue
 import com.rix.womblab.presentation.theme.WombLabTheme
-import com.rix.womblab.utils.toRelativeString
+import com.rix.womblab.utils.EventCardImage
+import kotlinx.coroutines.delay
 import java.time.LocalDateTime
+
+@Stable
+data class EventCardAnimationState(
+    val isVisible: Boolean = false,
+    val cardScale: Float = 1f,
+    val favoriteScale: Float = 1f,
+    val favoriteColor: Color = Color.Gray,
+    val gradientAlpha: Float = 0.7f
+)
+
+@Composable
+private fun rememberEventCardState(
+    isVisible: Boolean,
+    isPressed: Boolean,
+    isFavoritePressed: Boolean,
+    isFavorite: Boolean
+): EventCardAnimationState {
+    return remember(isVisible, isPressed, isFavoritePressed, isFavorite) {
+        derivedStateOf {
+            EventCardAnimationState(
+                isVisible = isVisible,
+                cardScale = if (isPressed) 0.95f else 1f,
+                favoriteScale = if (isFavoritePressed) 1.3f else 1f,
+                favoriteColor = if (isFavorite) Color(0xFFFFD700) else Color.Gray,
+                gradientAlpha = if (isPressed) 0.9f else 0.7f
+            )
+        }
+    }.value
+}
 
 @Composable
 fun EventCard(
@@ -42,52 +74,83 @@ fun EventCard(
     onFavoriteClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     showFavoriteButton: Boolean = true,
-    isCompact: Boolean = false
+    isCompact: Boolean = false,
+    animationDelay: Int = 0
 ) {
+    var isVisible by rememberSaveable(key = "visibility_${event.id}") { mutableStateOf(false) }
+    var isPressed by remember { mutableStateOf(false) }
     var isFavoritePressed by remember { mutableStateOf(false) }
 
+    val animationState = rememberEventCardState(
+        isVisible = isVisible,
+        isPressed = isPressed,
+        isFavoritePressed = isFavoritePressed,
+        isFavorite = event.isFavorite
+    )
+
+    LaunchedEffect(event.id) {
+        if (animationDelay > 0) {
+            delay(animationDelay.toLong())
+        }
+        isVisible = true
+    }
+
+    val cardScale by animateFloatAsState(
+        targetValue = animationState.cardScale,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "cardScale_${event.id}"
+    )
+
     val favoriteScale by animateFloatAsState(
-        targetValue = if (isFavoritePressed) 1.2f else 1f,
-        animationSpec = tween(150),
-        finishedListener = { isFavoritePressed = false }
+        targetValue = animationState.favoriteScale,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        finishedListener = { isFavoritePressed = false },
+        label = "favoriteScale_${event.id}"
     )
 
     val favoriteColor by animateColorAsState(
-        targetValue = if (event.isFavorite) Color(0xFFFFD700) else Color.Gray,
-        animationSpec = tween(300)
+        targetValue = animationState.favoriteColor,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "favoriteColor_${event.id}"
     )
 
-    Card(
+    androidx.compose.animation.AnimatedVisibility(
+        visible = isVisible,
+        enter = slideInVertically(
+            initialOffsetY = { it / 2 },
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            )
+        ) + fadeIn(animationSpec = tween(600)),
         modifier = modifier
-            .fillMaxWidth()
-            .clickable { onEventClick(event.id) },
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
     ) {
         if (isCompact) {
             CompactEventContent(
                 event = event,
-                onFavoriteClick = {
-                    isFavoritePressed = true
-                    onFavoriteClick(event.id)
-                },
+                onEventClick = onEventClick,
+                onFavoriteClick = onFavoriteClick,
                 showFavoriteButton = showFavoriteButton,
+                cardScale = cardScale,
                 favoriteScale = favoriteScale,
-                favoriteColor = favoriteColor
+                favoriteColor = favoriteColor,
+                onPress = { isPressed = true },
+                onRelease = { isPressed = false },
+                onFavoritePress = { isFavoritePressed = true }
             )
         } else {
             FullEventContent(
                 event = event,
-                onFavoriteClick = {
-                    isFavoritePressed = true
-                    onFavoriteClick(event.id)
-                },
+                onEventClick = onEventClick,
+                onFavoriteClick = onFavoriteClick,
                 showFavoriteButton = showFavoriteButton,
+                cardScale = cardScale,
                 favoriteScale = favoriteScale,
-                favoriteColor = favoriteColor
+                favoriteColor = favoriteColor,
+                gradientAlpha = animationState.gradientAlpha,
+                onPress = { isPressed = true },
+                onRelease = { isPressed = false },
+                onFavoritePress = { isFavoritePressed = true }
             )
         }
     }
@@ -96,146 +159,50 @@ fun EventCard(
 @Composable
 private fun FullEventContent(
     event: Event,
-    onFavoriteClick: () -> Unit,
+    onEventClick: (String) -> Unit,
+    onFavoriteClick: (String) -> Unit,
     showFavoriteButton: Boolean,
+    cardScale: Float,
     favoriteScale: Float,
-    favoriteColor: Color
+    favoriteColor: Color,
+    gradientAlpha: Float,
+    onPress: () -> Unit,
+    onRelease: () -> Unit,
+    onFavoritePress: () -> Unit
 ) {
-    Column {
-        // Immagine con overlay
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(180.dp)
-        ) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(event.image?.url ?: "")
-                    .crossfade(true)
-                    .build(),
-                contentDescription = event.title,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
-                contentScale = ContentScale.Crop
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .scale(cardScale)
+            .optimizedClickable(
+                onPress = onPress,
+                onRelease = onRelease,
+                onClick = { onEventClick(event.id) }
+            ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = animateDpAsState(
+                targetValue = if (cardScale < 1f) 2.dp else 8.dp,
+                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                label = "cardElevation_${event.id}"
+            ).value
+        ),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column {
+            HeroImageSection(
+                event = event,
+                showFavoriteButton = showFavoriteButton,
+                favoriteScale = favoriteScale,
+                favoriteColor = favoriteColor,
+                gradientAlpha = gradientAlpha,
+                onFavoriteClick = onFavoriteClick,
+                onFavoritePress = onFavoritePress
             )
 
-            // Overlay gradient
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                Color.Black.copy(alpha = 0.7f)
-                            ),
-                            startY = 0f,
-                            endY = Float.POSITIVE_INFINITY
-                        )
-                    )
-            )
-
-            // Badge featured
-            if (event.featured) {
-                Card(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .align(Alignment.TopStart),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    ),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = "In evidenza",
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-
-            // Bottone preferiti
-            if (showFavoriteButton) {
-                IconButton(
-                    onClick = onFavoriteClick,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp)
-                        .scale(favoriteScale)
-                ) {
-                    Icon(
-                        imageVector = if (event.isFavorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
-                        contentDescription = if (event.isFavorite) "Rimuovi dai preferiti" else "Aggiungi ai preferiti",
-                        tint = favoriteColor,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
-
-            // Titolo overlay
-            Text(
-                text = event.title,
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(16.dp),
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-
-        // Contenuto card
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            // Luogo (senza data)
-            event.venue?.let { venue ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.LocationOn,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "${venue.name}, ${venue.city}",
-                        color = MaterialTheme.colorScheme.primary,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            // Descrizione
-            if (event.excerpt.isNotBlank()) {
-                Text(
-                    text = event.excerpt,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 14.sp,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 20.sp
-                )
-            }
-
-            // Categorie
-            if (event.categories.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(12.dp))
-                LazyRowCategories(categories = event.categories.take(2))
-            }
+            ContentSection(event = event)
         }
     }
 }
@@ -243,98 +210,70 @@ private fun FullEventContent(
 @Composable
 private fun CompactEventContent(
     event: Event,
-    onFavoriteClick: () -> Unit,
+    onEventClick: (String) -> Unit,
+    onFavoriteClick: (String) -> Unit,
     showFavoriteButton: Boolean,
+    cardScale: Float,
     favoriteScale: Float,
-    favoriteColor: Color
+    favoriteColor: Color,
+    onPress: () -> Unit,
+    onRelease: () -> Unit,
+    onFavoritePress: () -> Unit
 ) {
-    Row(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(12.dp)
+            .scale(cardScale)
+            .optimizedClickable(
+                onPress = onPress,
+                onRelease = onRelease,
+                onClick = { onEventClick(event.id) }
+            ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(12.dp)
     ) {
-        // Immagine compatta
-        Box(
+        Row(
             modifier = Modifier
-                .size(80.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(event.image?.thumbnailUrl ?: event.image?.url ?: "")
-                    .crossfade(true)
-                    .build(),
-                contentDescription = event.title,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
+            CompactImageSection(event = event)
 
-            if (event.featured) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .background(
-                            MaterialTheme.colorScheme.primary,
-                            RoundedCornerShape(bottomEnd = 8.dp)
-                        )
-                        .padding(2.dp)
-                ) {
-                    Text(
-                        text = "★",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontSize = 10.sp
-                    )
-                }
-            }
-        }
+            Spacer(modifier = Modifier.width(16.dp))
 
-        Spacer(modifier = Modifier.width(12.dp))
-
-        // Contenuto
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 Text(
                     text = event.title,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
+                    style = MaterialTheme.typography.titleMedium,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurface
+                    overflow = TextOverflow.Ellipsis
                 )
-
-                Spacer(modifier = Modifier.height(4.dp))
 
                 event.venue?.let { venue ->
                     Text(
                         text = "${venue.name}, ${venue.city}",
-                        fontSize = 12.sp,
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Medium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
             }
-        }
 
-        // Bottone preferiti compatto
-        if (showFavoriteButton) {
-            IconButton(
-                onClick = onFavoriteClick,
-                modifier = Modifier
-                    .size(40.dp)
-                    .scale(favoriteScale)
-            ) {
-                Icon(
-                    imageVector = if (event.isFavorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
-                    contentDescription = if (event.isFavorite) "Rimuovi dai preferiti" else "Aggiungi ai preferiti",
-                    tint = favoriteColor,
-                    modifier = Modifier.size(20.dp)
+            if (showFavoriteButton) {
+                OptimizedFavoriteButton(
+                    isFavorite = event.isFavorite,
+                    scale = favoriteScale,
+                    color = favoriteColor,
+                    onClick = {
+                        onFavoritePress()
+                        onFavoriteClick(event.id)
+                    },
+                    size = 24.dp
                 )
             }
         }
@@ -342,10 +281,200 @@ private fun CompactEventContent(
 }
 
 @Composable
-private fun LazyRowCategories(categories: List<com.rix.womblab.domain.model.EventCategory>) {
+private fun HeroImageSection(
+    event: Event,
+    showFavoriteButton: Boolean,
+    favoriteScale: Float,
+    favoriteColor: Color,
+    gradientAlpha: Float,
+    onFavoriteClick: (String) -> Unit,
+    onFavoritePress: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+    ) {
+        EventCardImage(
+            imageUrl = event.image?.url,
+            eventId = event.id,
+            isCompact = false,
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+            contentScale = ContentScale.Crop
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black.copy(alpha = gradientAlpha)
+                        )
+                    )
+                )
+        )
+
+        if (event.featured) {
+            FeaturedBadgeOptimized()
+        }
+
+        if (showFavoriteButton) {
+            OptimizedFavoriteButton(
+                isFavorite = event.isFavorite,
+                scale = favoriteScale,
+                color = favoriteColor,
+                onClick = {
+                    onFavoritePress()
+                    onFavoriteClick(event.id)
+                },
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(20.dp)
+        ) {
+            Text(
+                text = event.title,
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                ),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+private fun ContentSection(event: Event) {
+    Column(
+        modifier = Modifier.padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        event.venue?.let { venue ->
+            OptimizedInfoRow(
+                icon = Icons.Default.LocationOn,
+                text = "${venue.name}, ${venue.city}"
+            )
+        }
+
+        if (event.excerpt.isNotBlank()) {
+            Text(
+                text = event.excerpt,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+                lineHeight = 20.sp
+            )
+        }
+
+        if (event.categories.isNotEmpty()) {
+            OptimizedCategories(categories = event.categories.take(2))
+        }
+    }
+}
+
+@Composable
+private fun CompactImageSection(event: Event) {
+    Box(
+        modifier = Modifier
+            .size(80.dp)
+            .clip(RoundedCornerShape(12.dp))
+    ) {
+        EventCardImage(
+            imageUrl = event.image?.thumbnailUrl ?: event.image?.url,
+            eventId = event.id,
+            isCompact = true,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+
+        if (event.featured) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .background(
+                        MaterialTheme.colorScheme.primary,
+                        RoundedCornerShape(bottomEnd = 8.dp)
+                    )
+                    .padding(4.dp)
+            ) {
+                Text(
+                    text = "★",
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    fontSize = 12.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun OptimizedFavoriteButton(
+    isFavorite: Boolean,
+    scale: Float,
+    color: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    size: androidx.compose.ui.unit.Dp = 28.dp
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = modifier
+            .scale(scale)
+            .graphicsLayer {
+                rotationZ = if (scale > 1.1f) 15f else 0f
+            }
+    ) {
+        Icon(
+            imageVector = if (isFavorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
+            contentDescription = if (isFavorite) "Rimuovi dai preferiti" else "Aggiungi ai preferiti",
+            tint = color,
+            modifier = Modifier.size(size)
+        )
+    }
+}
+
+@Composable
+private fun OptimizedInfoRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    text: String
+) {
     Row(
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(18.dp)
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun OptimizedCategories(categories: List<com.rix.womblab.domain.model.EventCategory>) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         categories.forEach { category ->
             SuggestionChip(
                 onClick = { },
@@ -355,21 +484,66 @@ private fun LazyRowCategories(categories: List<com.rix.womblab.domain.model.Even
                         fontSize = 12.sp
                     )
                 },
-                modifier = Modifier.height(24.dp)
+                modifier = Modifier.height(28.dp)
             )
         }
     }
 }
 
+@Composable
+private fun FeaturedBadgeOptimized() {
+    val infiniteTransition = rememberInfiniteTransition(label = "featuredBadge")
+    val shimmer by infiniteTransition.animateFloat(
+        initialValue = 0.9f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "shimmer"
+    )
+
+    Card(
+        modifier = Modifier.padding(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = shimmer)
+        ),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Text(
+            text = "⭐ In evidenza",
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            color = MaterialTheme.colorScheme.onPrimary,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+fun Modifier.optimizedClickable(
+    onPress: () -> Unit = {},
+    onRelease: () -> Unit = {},
+    onClick: () -> Unit
+) = composed {
+    val interactionSource = remember { MutableInteractionSource() }
+
+    this.clickable(
+        interactionSource = interactionSource,
+        indication = null
+    ) {
+        onClick()
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
-fun EventCardPreview() {
+fun OptimizedEventCardPreview() {
     WombLabTheme {
         val sampleEvent = Event(
             id = "1",
             title = "GESTIONE DELL'IPERTENSIONE ARTERIOSA PERIOPERATORIA",
             description = "Un evento formativo per medici specialisti",
-            excerpt = "L'ipertensione arteriosa perioperatoria rappresenta una problematica molto frequente che necessita di trattamento specifico.",
+            excerpt = "L'ipertensione arteriosa perioperatoria rappresenta una problematica molto frequente.",
             url = "https://example.com",
             image = null,
             startDate = LocalDateTime.now().plusDays(3),
@@ -405,13 +579,6 @@ fun EventCardPreview() {
                 event = sampleEvent,
                 onEventClick = { },
                 onFavoriteClick = { }
-            )
-
-            EventCard(
-                event = sampleEvent.copy(isFavorite = true),
-                onEventClick = { },
-                onFavoriteClick = { },
-                isCompact = true
             )
         }
     }

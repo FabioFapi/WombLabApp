@@ -5,7 +5,6 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-// Date Extensions
 fun LocalDateTime.toDisplayString(): String {
     val formatter = DateTimeFormatter.ofPattern(Constants.DATETIME_FORMAT_DISPLAY, Locale.getDefault())
     return this.format(formatter)
@@ -49,7 +48,6 @@ fun LocalDateTime.toRelativeString(): String {
     }
 }
 
-// String Extensions
 fun String.removeHtmlTags(): String {
     return this.replace(Regex("<[^>]*>"), "")
         .replace("&amp;", "&")
@@ -72,7 +70,6 @@ fun String.toSlug(): String {
         .trim('-')
 }
 
-// List Extensions
 fun <T> List<T>.safeGet(index: Int): T? {
     return if (index in 0 until size) this[index] else null
 }

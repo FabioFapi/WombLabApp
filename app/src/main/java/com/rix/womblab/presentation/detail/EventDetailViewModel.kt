@@ -125,7 +125,6 @@ class EventDetailViewModel @Inject constructor(
                 }
 
                 is Resource.Loading -> {
-                    // Già gestito
                 }
             }
         }

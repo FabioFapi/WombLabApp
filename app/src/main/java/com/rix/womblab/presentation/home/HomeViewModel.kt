@@ -169,7 +169,6 @@ class HomeViewModel @Inject constructor(
                     )
                 }
                 is Resource.Loading -> {
-                    // Già gestito
                 }
             }
 

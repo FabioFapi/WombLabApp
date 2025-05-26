@@ -159,7 +159,6 @@ private fun CalendarWidget(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Griglia calendario
             CalendarGrid(
                 currentMonth = currentMonth,
                 selectedDate = selectedDate,

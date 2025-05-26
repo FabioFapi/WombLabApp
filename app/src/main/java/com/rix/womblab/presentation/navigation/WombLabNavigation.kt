@@ -142,7 +142,6 @@ private fun SplashScreen(
         androidx.compose.foundation.layout.Column(
             horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
         ) {
-            // Logo
             androidx.compose.material3.Card(
                 modifier = androidx.compose.ui.Modifier
                     .size(120.dp)
