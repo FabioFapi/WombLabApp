@@ -60,6 +60,7 @@ class PreferencesUtils @Inject constructor(
             val profileJson = json.encodeToString(profile)
             prefs.edit().putString(PREF_USER_PROFILE, profileJson).apply()
         } catch (e: Exception) {
+
         }
     }
 
@@ -81,15 +82,24 @@ class PreferencesUtils @Inject constructor(
     }
 
     fun isRegistrationCompleted(): Boolean {
-        val completed = prefs.getBoolean(Constants.PREF_REGISTRATION_COMPLETED, false)
-        return completed
+        return prefs.getBoolean(Constants.PREF_REGISTRATION_COMPLETED, false)
     }
 
     fun clearAll() {
         prefs.edit().clear().apply()
+        prefs.edit().putBoolean(PREF_FORCE_LOGOUT, true).apply()
+    }
+
+    fun isForcedLogout(): Boolean {
+        return prefs.getBoolean(PREF_FORCE_LOGOUT, false)
+    }
+
+    fun clearForcedLogout() {
+        prefs.edit().putBoolean(PREF_FORCE_LOGOUT, false).apply()
     }
 
     companion object {
         private const val PREF_USER_PROFILE = "user_profile"
+        private const val PREF_FORCE_LOGOUT = "force_logout"
     }
 }

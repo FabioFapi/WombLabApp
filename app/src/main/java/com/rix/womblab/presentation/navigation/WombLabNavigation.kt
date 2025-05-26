@@ -1,24 +1,31 @@
 package com.rix.womblab.presentation.navigation
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.rix.womblab.R
 import com.rix.womblab.presentation.auth.login.LoginScreen
-import com.rix.womblab.presentation.auth.login.LoginViewModel
 import com.rix.womblab.presentation.auth.register.RegisterScreen
+import com.rix.womblab.presentation.splash.SplashViewModel
+import com.rix.womblab.presentation.splash.SplashNavigationTarget
 import kotlinx.coroutines.delay
 
 @Composable
@@ -31,20 +38,20 @@ fun WombLabNavigation(
         startDestination = startDestination
     ) {
         composable(Screen.Splash.route) {
-            SplashScreen(
+            SplashScreenWithAuth(
                 onNavigateToLogin = {
                     navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
+                        popUpTo(0) { inclusive = true }
                     }
                 },
                 onNavigateToRegister = {
                     navController.navigate(Screen.Register.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
+                        popUpTo(0) { inclusive = true }
                     }
                 },
                 onNavigateToMain = {
                     navController.navigate(Screen.Main.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
+                        popUpTo(0) { inclusive = true }
                     }
                 }
             )
@@ -85,7 +92,10 @@ fun WombLabNavigation(
             MainScreen(
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
-                        popUpTo(0) { inclusive = true }
+                        popUpTo(0) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
                     }
                 }
             )
@@ -94,103 +104,87 @@ fun WombLabNavigation(
 }
 
 @Composable
-private fun SplashScreen(
+private fun SplashScreenWithAuth(
     onNavigateToLogin: () -> Unit,
     onNavigateToRegister: () -> Unit,
     onNavigateToMain: () -> Unit,
-    loginViewModel: LoginViewModel = hiltViewModel()
+    viewModel: SplashViewModel = hiltViewModel()
 ) {
-    val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
         delay(2000)
+        viewModel.checkAuthState()
+    }
 
-        when {
-            !loginState.isLoggedIn -> {
-                onNavigateToLogin()
-            }
-            loginState.isLoggedIn && !loginState.isRegistrationComplete -> {
-                onNavigateToRegister()
-            }
-            loginState.isLoggedIn && loginState.isRegistrationComplete -> {
-                onNavigateToMain()
-            }
-            else -> {
-                onNavigateToLogin()
-            }
+    LaunchedEffect(uiState.navigationTarget) {
+        when (uiState.navigationTarget) {
+            SplashNavigationTarget.Login -> onNavigateToLogin()
+            SplashNavigationTarget.Registration -> onNavigateToRegister()
+            SplashNavigationTarget.Main -> onNavigateToMain()
+            null -> { }
         }
     }
 
-    LaunchedEffect(loginState.error) {
-        loginState.error?.let { error ->
-        }
-    }
-
-    androidx.compose.foundation.layout.Box(
-        modifier = androidx.compose.ui.Modifier
+    Box(
+        modifier = Modifier
             .fillMaxSize()
             .background(
-                androidx.compose.ui.graphics.Brush.verticalGradient(
+                brush = Brush.verticalGradient(
                     colors = listOf(
-                        androidx.compose.ui.graphics.Color(0xFF006B5B),
-                        androidx.compose.ui.graphics.Color(0xFF004D42)
+                        Color(0xFF006B5B),
+                        Color(0xFF004D42)
                     )
                 )
             ),
-        contentAlignment = androidx.compose.ui.Alignment.Center
+        contentAlignment = Alignment.Center
     ) {
-        androidx.compose.foundation.layout.Column(
-            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            androidx.compose.material3.Card(
-                modifier = androidx.compose.ui.Modifier
-                    .size(120.dp)
-                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(60.dp)),
-                colors = androidx.compose.material3.CardDefaults.cardColors(
-                    containerColor = androidx.compose.ui.graphics.Color.White
-                ),
-                elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 8.dp)
+            Box(
+                modifier = Modifier.size(120.dp),
+                contentAlignment = Alignment.Center
             ) {
-                androidx.compose.foundation.layout.Box(
-                    modifier = androidx.compose.ui.Modifier.fillMaxSize(),
-                    contentAlignment = androidx.compose.ui.Alignment.Center
-                ) {
-                    androidx.compose.material3.Text(
-                        text = "🔬",
-                        fontSize = 48.sp,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
-                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape)
+                        .background(color = Color.White)
+                )
+
+                Image(
+                    painter = painterResource(id = R.drawable.womblab_logo),
+                    contentDescription = "WombLab Logo",
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
             }
 
-            androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.height(24.dp))
-
-            androidx.compose.material3.Text(
+            Text(
                 text = "WombLab",
-                fontSize = 32.sp,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                color = androidx.compose.ui.graphics.Color.White
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    fontWeight = FontWeight.Bold
+                ),
+                color = Color.White,
+                textAlign = TextAlign.Center
             )
 
-            androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.height(16.dp))
-
-            androidx.compose.material3.Text(
-                text = when {
-                    loginState.isLoading -> "Controllo autenticazione..."
-                    loginState.error != null -> "Errore: ${loginState.error}"
-                    loginState.isLoggedIn && loginState.isRegistrationComplete -> "Benvenuto!"
-                    loginState.isLoggedIn && !loginState.isRegistrationComplete -> "Completa registrazione..."
-                    else -> "Caricamento..."
-                },
-                fontSize = 14.sp,
-                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.8f),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            Text(
+                text = "Eventi Formativi Professionali",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.White.copy(alpha = 0.8f),
+                textAlign = TextAlign.Center
             )
 
-            androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            androidx.compose.material3.CircularProgressIndicator(
-                color = androidx.compose.ui.graphics.Color.White,
+            CircularProgressIndicator(
+                modifier = Modifier.size(32.dp),
+                color = Color.White,
                 strokeWidth = 2.dp
             )
         }

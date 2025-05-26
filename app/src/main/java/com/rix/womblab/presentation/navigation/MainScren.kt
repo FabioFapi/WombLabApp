@@ -201,7 +201,9 @@ fun MainScreen(
 
                 composable(Screen.Profile.route) {
                     ProfileScreen(
-                        onLogoutSuccess = onLogout
+                        onLogoutSuccess = {
+                            onLogout()
+                        }
                     )
                 }
 

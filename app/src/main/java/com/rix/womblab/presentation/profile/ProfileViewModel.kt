@@ -22,7 +22,8 @@ data class ProfileUiState(
     val favoriteEventsCount: Int = 0,
     val error: String? = null,
     val isLoggingOut: Boolean = false,
-    val logoutSuccess: Boolean = false
+    val logoutSuccess: Boolean = false,
+    val showLogoutDialog: Boolean = false
 )
 
 @HiltViewModel
@@ -94,17 +95,31 @@ class ProfileViewModel @Inject constructor(
                         )
                     }
                     is Resource.Error -> {
+
                     }
                     is Resource.Loading -> {
+
                     }
                 }
             }
         }
     }
 
-    fun logout() {
+    fun showLogoutDialog() {
+        _uiState.value = _uiState.value.copy(showLogoutDialog = true)
+    }
+
+    fun hideLogoutDialog() {
+        _uiState.value = _uiState.value.copy(showLogoutDialog = false)
+    }
+
+    fun confirmLogout() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoggingOut = true, error = null)
+            _uiState.value = _uiState.value.copy(
+                isLoggingOut = true,
+                error = null,
+                showLogoutDialog = false
+            )
 
             when (val result = logoutUseCase()) {
                 is Resource.Success -> {
@@ -120,6 +135,7 @@ class ProfileViewModel @Inject constructor(
                     )
                 }
                 is Resource.Loading -> {
+
                 }
             }
         }

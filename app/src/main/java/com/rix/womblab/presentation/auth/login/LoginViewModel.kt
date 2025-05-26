@@ -29,7 +29,7 @@ class LoginViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
     private val logoutUseCase: LogoutUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
-    private val authRepository: AuthRepository
+    val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow(LoginState())
@@ -43,40 +43,64 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             _loginState.value = _loginState.value.copy(isLoading = true)
 
-            getCurrentUserUseCase().collect { firebaseUser ->
-                if (firebaseUser != null) {
-                    val user = User(
-                        id = firebaseUser.uid,
-                        email = firebaseUser.email ?: "",
-                        displayName = firebaseUser.displayName ?: "",
-                        photoUrl = firebaseUser.photoUrl?.toString(),
-                        isEmailVerified = firebaseUser.isEmailVerified
-                    )
+            try {
+                getCurrentUserUseCase().collect { firebaseUser ->
+                    if (firebaseUser != null) {
+                        val isStillLoggedIn = authRepository.isUserLoggedIn()
 
-                    val isRegistrationCompleted = try {
-                        authRepository.isRegistrationCompleted(firebaseUser.uid)
-                    } catch (e: Exception) {
-                        false
+                        if (isStillLoggedIn) {
+                            val user = User(
+                                id = firebaseUser.uid,
+                                email = firebaseUser.email ?: "",
+                                displayName = firebaseUser.displayName ?: "",
+                                photoUrl = firebaseUser.photoUrl?.toString(),
+                                isEmailVerified = firebaseUser.isEmailVerified
+                            )
+
+                            val isRegistrationCompleted = try {
+                                authRepository.isRegistrationCompleted(firebaseUser.uid)
+                            } catch (e: Exception) {
+                                false
+                            }
+
+                            _loginState.value = LoginState(
+                                isLoading = false,
+                                user = user,
+                                isLoggedIn = true,
+                                isRegistrationComplete = isRegistrationCompleted,
+                                error = null
+                            )
+                        } else {
+                            resetToLoggedOutState()
+                        }
+                    } else {
+                        resetToLoggedOutState()
                     }
-
-                    _loginState.value = LoginState(
-                        isLoading = false,
-                        user = user,
-                        isLoggedIn = true,
-                        isRegistrationComplete = isRegistrationCompleted,
-                        error = null
-                    )
-                } else {
-                    _loginState.value = LoginState(
-                        isLoading = false,
-                        user = null,
-                        isLoggedIn = false,
-                        isRegistrationComplete = false,
-                        error = null
-                    )
                 }
+            } catch (e: Exception) {
+                _loginState.value = LoginState(
+                    isLoading = false,
+                    user = null,
+                    isLoggedIn = false,
+                    isRegistrationComplete = false,
+                    error = "Errore controllo autenticazione: ${e.message}"
+                )
             }
         }
+    }
+
+    private fun resetToLoggedOutState() {
+        _loginState.value = LoginState(
+            isLoading = false,
+            user = null,
+            isLoggedIn = false,
+            isRegistrationComplete = false,
+            error = null
+        )
+    }
+
+    fun forceResetState() {
+        resetToLoggedOutState()
     }
 
     fun getGoogleSignInIntent(): Intent {
@@ -147,13 +171,7 @@ class LoginViewModel @Inject constructor(
 
             when (val result = logoutUseCase()) {
                 is Resource.Success -> {
-                    _loginState.value = LoginState(
-                        isLoading = false,
-                        user = null,
-                        isLoggedIn = false,
-                        isRegistrationComplete = false,
-                        error = null
-                    )
+                    resetToLoggedOutState()
                 }
                 is Resource.Error -> {
                     _loginState.value = _loginState.value.copy(

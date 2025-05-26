@@ -1,5 +1,6 @@
 package com.rix.womblab.presentation.profile
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -41,12 +42,16 @@ fun ProfileScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val pullToRefreshState = rememberPullToRefreshState()
-    val scrollState = rememberScrollState()
 
+    // IMPORTANTE: Questo LaunchedEffect con DEBUG
     LaunchedEffect(uiState.logoutSuccess) {
+        Log.d("ProfileScreen", "🎯 LaunchedEffect - logoutSuccess: ${uiState.logoutSuccess}")
         if (uiState.logoutSuccess) {
-            onLogoutSuccess()
-            viewModel.clearLogoutSuccess()
+            Log.d("ProfileScreen", "🎯 Chiamando onLogoutSuccess()")
+            onLogoutSuccess() // Chiama il callback per navigare
+
+            Log.d("ProfileScreen", "🎯 Chiamando viewModel.clearLogoutSuccess()")
+            viewModel.clearLogoutSuccess() // Pulisce lo stato
         }
     }
 
@@ -104,19 +109,114 @@ fun ProfileScreen(
                 else -> {
                     ProfileContent(
                         uiState = uiState,
-                        onLogout = viewModel::logout,
+                        onShowLogoutDialog = viewModel::showLogoutDialog,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
             }
         }
+
+        if (uiState.showLogoutDialog) {
+            LogoutConfirmationDialog(
+                onConfirm = viewModel::confirmLogout,
+                onDismiss = viewModel::hideLogoutDialog,
+                isLoggingOut = uiState.isLoggingOut
+            )
+        }
     }
+}
+
+@Composable
+private fun LogoutConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    isLoggingOut: Boolean
+) {
+    AlertDialog(
+        onDismissRequest = {
+            if (!isLoggingOut) onDismiss()
+        },
+        icon = {
+            Icon(
+                imageVector = Icons.Default.ExitToApp,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(32.dp)
+            )
+        },
+        title = {
+            Text(
+                text = "Conferma Logout",
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    text = "Sei sicuro di voler uscire dall'app?",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Dovrai effettuare nuovamente l'accesso per utilizzare l'app.",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                    textAlign = TextAlign.Center
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                enabled = !isLoggingOut,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                ),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                if (isLoggingOut) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        color = MaterialTheme.colorScheme.onError,
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Uscendo...")
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Logout,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Esci")
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                enabled = !isLoggingOut
+            ) {
+                Text(
+                    text = "Annulla",
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(16.dp)
+    )
 }
 
 @Composable
 private fun ProfileContent(
     uiState: ProfileUiState,
-    onLogout: () -> Unit,
+    onShowLogoutDialog: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -151,7 +251,7 @@ private fun ProfileContent(
         Spacer(modifier = Modifier.height(24.dp))
 
         ActionsSection(
-            onLogout = onLogout,
+            onLogoutClick = onShowLogoutDialog,
             isLoggingOut = uiState.isLoggingOut
         )
 
@@ -401,7 +501,7 @@ private fun InfoRow(
 
 @Composable
 private fun ActionsSection(
-    onLogout: () -> Unit,
+    onLogoutClick: () -> Unit,
     isLoggingOut: Boolean
 ) {
     Column(
@@ -409,7 +509,7 @@ private fun ActionsSection(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Button(
-            onClick = onLogout,
+            onClick = onLogoutClick,
             enabled = !isLoggingOut,
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
@@ -417,23 +517,14 @@ private fun ActionsSection(
             ),
             shape = RoundedCornerShape(12.dp)
         ) {
-            if (isLoggingOut) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    color = MaterialTheme.colorScheme.onError,
-                    strokeWidth = 2.dp
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-            } else {
-                Icon(
-                    imageVector = Icons.Default.Logout,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-            }
+            Icon(
+                imageVector = Icons.Default.Logout,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = if (isLoggingOut) "Disconnessione..." else "Esci",
+                text = "Esci",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium
             )

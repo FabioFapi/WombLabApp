@@ -48,7 +48,9 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getCurrentUser(): FirebaseUser? = firebaseAuth.currentUser
+    override fun getCurrentUser(): FirebaseUser? {
+        return firebaseAuth.currentUser
+    }
 
     override suspend fun signInWithGoogle(account: GoogleSignInAccount): WombLabResource<User> {
         return try {
@@ -65,6 +67,7 @@ class AuthRepositoryImpl @Inject constructor(
                     isEmailVerified = firebaseUser.isEmailVerified
                 )
 
+                preferencesUtils.clearForcedLogout()
                 preferencesUtils.setUserId(firebaseUser.uid)
 
                 WombLabResource.Success(user)
@@ -82,7 +85,7 @@ class AuthRepositoryImpl @Inject constructor(
         return try {
             val task = GoogleSignIn.getSignedInAccountFromIntent(data)
             task.getResult(ApiException::class.java)
-        } catch (e: ApiException) {
+        } catch (e: Exception) {
             null
         }
     }
@@ -92,20 +95,27 @@ class AuthRepositoryImpl @Inject constructor(
             firebaseAuth.signOut()
             createGoogleSignInClient().signOut().await()
             preferencesUtils.clearAll()
+
+            try {
+                context.cacheDir.deleteRecursively()
+            } catch (e: Exception) {
+
+            }
+
             WombLabResource.Success(Unit)
         } catch (e: Exception) {
             WombLabResource.Error(e.message ?: "Errore durante il logout")
         }
     }
 
-    override fun isUserLoggedIn(): Boolean = firebaseAuth.currentUser != null
+    override fun isUserLoggedIn(): Boolean {
+        return firebaseAuth.currentUser != null
+    }
 
     override suspend fun updateUserProfile(user: User, profile: UserProfile): WombLabResource<User> {
         return try {
-
             preferencesUtils.setUserProfile(profile)
             preferencesUtils.setRegistrationCompleted(true)
-
 
             val updatedUser = user.copy(
                 displayName = "${profile.firstName} ${profile.lastName}"

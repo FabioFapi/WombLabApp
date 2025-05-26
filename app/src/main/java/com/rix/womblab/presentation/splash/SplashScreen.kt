@@ -1,6 +1,5 @@
 package com.rix.womblab.presentation.splash
 
-import android.R.color.white
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -10,49 +9,67 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.rix.womblab.R
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
-    onNavigateToMain: () -> Unit
+    onNavigateToLogin: () -> Unit,
+    onNavigateToMain: () -> Unit,
+    onNavigateToRegistration: () -> Unit,
+    viewModel: SplashViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
     LaunchedEffect(Unit) {
         delay(2000)
-        onNavigateToMain()
+        viewModel.checkAuthState()
     }
 
-    // UI minimale
+    LaunchedEffect(uiState.navigationTarget) {
+        when (uiState.navigationTarget) {
+            SplashNavigationTarget.Login -> onNavigateToLogin()
+            SplashNavigationTarget.Registration -> onNavigateToRegistration()
+            SplashNavigationTarget.Main -> onNavigateToMain()
+            null -> { }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface),
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF006B5B),
+                        Color(0xFF004D42)
+                    )
+                )
+            ),
         contentAlignment = Alignment.Center
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Logo aziendale con background elegante
             Box(
                 modifier = Modifier.size(120.dp),
                 contentAlignment = Alignment.Center
-            )
-            {
+            ) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(CircleShape)
-                        .background(color = androidx.compose.ui.graphics.Color.White)
+                        .background(color = Color.White)
                 )
-
 
                 Image(
                     painter = painterResource(id = R.drawable.womblab_logo),
@@ -69,14 +86,14 @@ fun SplashScreen(
                 style = MaterialTheme.typography.headlineLarge.copy(
                     fontWeight = FontWeight.Bold
                 ),
-                color = MaterialTheme.colorScheme.onSurface,
+                color = Color.White,
                 textAlign = TextAlign.Center
             )
 
             Text(
                 text = "Eventi Formativi Professionali",
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center
             )
 
@@ -84,7 +101,8 @@ fun SplashScreen(
 
             CircularProgressIndicator(
                 modifier = Modifier.size(32.dp),
-                color = MaterialTheme.colorScheme.primary
+                color = Color.White,
+                strokeWidth = 2.dp
             )
         }
     }
