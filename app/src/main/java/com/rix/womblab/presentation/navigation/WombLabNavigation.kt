@@ -69,6 +69,9 @@ fun WombLabNavigation(
                             popUpTo(Screen.Login.route) { inclusive = true }
                         }
                     }
+                },
+                onNavigateToSignUp = {
+                    navController.navigate(Screen.Register.route)
                 }
             )
         }
@@ -82,6 +85,11 @@ fun WombLabNavigation(
                 },
                 onRegistrationSuccess = {
                     navController.navigate(Screen.Main.route) {
+                        popUpTo(Screen.Register.route) { inclusive = true }
+                    }
+                },
+                onNavigateToLogin = {
+                    navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Register.route) { inclusive = true }
                     }
                 }

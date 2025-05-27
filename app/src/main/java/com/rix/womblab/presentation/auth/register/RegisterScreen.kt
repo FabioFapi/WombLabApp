@@ -1,76 +1,98 @@
 package com.rix.womblab.presentation.auth.register
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.rix.womblab.R
 import com.rix.womblab.presentation.theme.WombLabTheme
-import com.rix.womblab.utils.Constants
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
     onNavigateBack: () -> Unit,
     onRegistrationSuccess: () -> Unit,
+    onNavigateToLogin: () -> Unit = {},
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
+    val focusManager = LocalFocusManager.current
+
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
+
+    val googleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        viewModel.handleGoogleSignInResult(result.data)
+    }
 
     LaunchedEffect(uiState.isRegistrationComplete) {
-        println("🚀 RegisterScreen: isRegistrationComplete = ${uiState.isRegistrationComplete}")
         if (uiState.isRegistrationComplete) {
-            println("✅ Registrazione completata, navigating to main")
             onRegistrationSuccess()
-        }
-    }
-
-    LaunchedEffect(uiState.error) {
-        uiState.error?.let { error ->
-            println("❌ Registration Error: $error")
-        }
-    }
-
-    uiState.error?.let { error ->
-        LaunchedEffect(error) {
-            viewModel.clearError()
         }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Completa Registrazione") },
+                title = { Text("Registrazione") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Indietro"
+                            contentDescription = "Indietro",
+                            tint = Color.White
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
+                    containerColor = Color.Transparent,
+                    titleContentColor = Color.White
                 )
             )
         }
@@ -95,481 +117,409 @@ fun RegisterScreen(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(20.dp))
+                Card(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(RoundedCornerShape(50.dp)),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.womblab_logo),
+                            contentDescription = "WombLab Logo",
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
 
-                WelcomeSection(userName = uiState.currentUser?.displayName ?: "")
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = "Crea il tuo account",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Registrati per accedere a WombLab",
+                    fontSize = 16.sp,
+                    color = Color.White.copy(alpha = 0.8f),
+                    textAlign = TextAlign.Center
+                )
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                if (uiState.currentUser == null && !uiState.isLoading) {
-                    ErrorCard(
-                        error = uiState.error ?: "Utente non autenticato",
-                        onRetry = onNavigateBack
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedTextField(
+                        value = firstName,
+                        onValueChange = { firstName = it },
+                        label = { Text("Nome") },
+                        leadingIcon = {
+                            Icon(Icons.Default.Person, contentDescription = null)
+                        },
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = { focusManager.moveFocus(FocusDirection.Right) }
+                        ),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.White,
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
+                            focusedLabelColor = Color.White,
+                            unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            cursorColor = Color.White,
+                            focusedLeadingIconColor = Color.White,
+                            unfocusedLeadingIconColor = Color.White.copy(alpha = 0.7f)
+                        )
                     )
-                } else {
-                    RegistrationForm(
-                        uiState = uiState,
-                        onFirstNameChange = viewModel::onFirstNameChange,
-                        onLastNameChange = viewModel::onLastNameChange,
-                        onProfessionChange = viewModel::onProfessionChange,
-                        onSpecializationChange = viewModel::onSpecializationChange,
-                        onWorkplaceChange = viewModel::onWorkplaceChange,
-                        onCityChange = viewModel::onCityChange,
-                        onPhoneChange = viewModel::onPhoneChange,
-                        onNewsletterChange = viewModel::onNewsletterChange,
-                        onNotificationsChange = viewModel::onNotificationsChange,
-                        onCompleteRegistration = viewModel::completeRegistration,
-                        isLoading = uiState.isLoading
+
+                    OutlinedTextField(
+                        value = lastName,
+                        onValueChange = { lastName = it },
+                        label = { Text("Cognome") },
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                        ),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.White,
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
+                            focusedLabelColor = Color.White,
+                            unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            cursorColor = Color.White
+                        )
                     )
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                TermsAndPrivacy()
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Email") },
+                    leadingIcon = {
+                        Icon(Icons.Default.Email, contentDescription = null)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                    ),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.White,
+                        unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
+                        focusedLabelColor = Color.White,
+                        unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        cursorColor = Color.White,
+                        focusedLeadingIconColor = Color.White,
+                        unfocusedLeadingIconColor = Color.White.copy(alpha = 0.7f)
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Password") },
+                    leadingIcon = {
+                        Icon(Icons.Default.Lock, contentDescription = null)
+                    },
+                    trailingIcon = {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                contentDescription = if (passwordVisible) "Nascondi password" else "Mostra password",
+                                tint = Color.White.copy(alpha = 0.7f)
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                    ),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.White,
+                        unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
+                        focusedLabelColor = Color.White,
+                        unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        cursorColor = Color.White,
+                        focusedLeadingIconColor = Color.White,
+                        unfocusedLeadingIconColor = Color.White.copy(alpha = 0.7f)
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    label = { Text("Conferma Password") },
+                    leadingIcon = {
+                        Icon(Icons.Default.Lock, contentDescription = null)
+                    },
+                    trailingIcon = {
+                        IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                            Icon(
+                                imageVector = if (confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                contentDescription = if (confirmPasswordVisible) "Nascondi password" else "Mostra password",
+                                tint = Color.White.copy(alpha = 0.7f)
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            focusManager.clearFocus()
+                            if (isFormValid(firstName, lastName, email, password, confirmPassword)) {
+                                viewModel.signUpWithEmail(firstName, lastName, email, password)
+                            }
+                        }
+                    ),
+                    singleLine = true,
+                    isError = confirmPassword.isNotEmpty() && password != confirmPassword,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.White,
+                        unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
+                        focusedLabelColor = Color.White,
+                        unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        cursorColor = Color.White,
+                        focusedLeadingIconColor = Color.White,
+                        unfocusedLeadingIconColor = Color.White.copy(alpha = 0.7f)
+                    )
+                )
+
+                if (confirmPassword.isNotEmpty() && password != confirmPassword) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Le password non corrispondono",
+                        color = Color.Red.copy(alpha = 0.8f),
+                        fontSize = 12.sp,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = {
+                        if (isFormValid(firstName, lastName, email, password, confirmPassword)) {
+                            viewModel.signUpWithEmail(firstName, lastName, email, password)
+                        }
+                    },
+                    enabled = !uiState.isLoading && isFormValid(firstName, lastName, email, password, confirmPassword),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        contentColor = Color(0xFF006B5B)
+                    ),
+                    shape = RoundedCornerShape(28.dp),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                ) {
+                    if (uiState.isLoading && uiState.registrationMethod == "email") {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color(0xFF006B5B),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = "Registrati",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        color = Color.White.copy(alpha = 0.5f)
+                    )
+                    Text(
+                        text = "  oppure  ",
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontSize = 14.sp
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        color = Color.White.copy(alpha = 0.5f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = {
+                        val signInIntent = viewModel.getGoogleSignInIntent()
+                        googleSignInLauncher.launch(signInIntent)
+                    },
+                    enabled = !uiState.isLoading,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White.copy(alpha = 0.9f),
+                        contentColor = Color(0xFF006B5B)
+                    ),
+                    shape = RoundedCornerShape(28.dp),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                ) {
+                    if (uiState.isLoading && uiState.registrationMethod == "google") {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color(0xFF006B5B),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.google_logo),
+                                contentDescription = "Google Logo",
+                                modifier = Modifier
+                                    .size(50.dp)
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Text(
+                                text = "Registrati con Google",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Hai già un account? ",
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = "Accedi",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        textDecoration = TextDecoration.Underline,
+                        modifier = Modifier.clickable { onNavigateToLogin() }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 uiState.error?.let { error ->
-                    Spacer(modifier = Modifier.height(16.dp))
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer
-                        )
+                            containerColor = Color.Red.copy(alpha = 0.1f)
+                        ),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
                             text = error,
+                            color = Color.White,
+                            fontSize = 14.sp,
                             modifier = Modifier.padding(16.dp),
-                            color = MaterialTheme.colorScheme.onErrorContainer,
                             textAlign = TextAlign.Center
                         )
                     }
                 }
-            }
-        }
-    }
-}
 
-@Composable
-private fun ErrorCard(
-    error: String,
-    onRetry: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "⚠️",
-                fontSize = 48.sp
-            )
+                Spacer(modifier = Modifier.height(24.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Errore di Autenticazione",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onErrorContainer
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = error,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onErrorContainer,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = onRetry,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error
-                )
-            ) {
-                Text("Torna al Login")
-            }
-        }
-    }
-}
-
-@Composable
-private fun WelcomeSection(userName: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.95f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "🔬",
-                fontSize = 48.sp
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Benvenuto in WombLab${if (userName.isNotEmpty()) ", $userName" else ""}!",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF006B5B),
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Completa il tuo profilo per personalizzare la tua esperienza e ricevere eventi su misura per te.",
-                fontSize = 14.sp,
-                color = Color(0xFF004D42),
-                textAlign = TextAlign.Center,
-                lineHeight = 20.sp
-            )
-        }
-    }
-}
-
-@Composable
-private fun RegistrationForm(
-    uiState: RegisterUiState,
-    onFirstNameChange: (String) -> Unit,
-    onLastNameChange: (String) -> Unit,
-    onProfessionChange: (String) -> Unit,
-    onSpecializationChange: (String) -> Unit,
-    onWorkplaceChange: (String) -> Unit,
-    onCityChange: (String) -> Unit,
-    onPhoneChange: (String) -> Unit,
-    onNewsletterChange: (Boolean) -> Unit,
-    onNotificationsChange: (Boolean) -> Unit,
-    onCompleteRegistration: () -> Unit,
-    isLoading: Boolean
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.95f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            SectionTitle("Informazioni Personali")
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedTextField(
-                    value = uiState.firstName,
-                    onValueChange = onFirstNameChange,
-                    label = { Text("Nome *") },
-                    modifier = Modifier.weight(1f),
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF006B5B),
-                        focusedLabelColor = Color(0xFF006B5B)
-                    )
-                )
-
-                OutlinedTextField(
-                    value = uiState.lastName,
-                    onValueChange = onLastNameChange,
-                    label = { Text("Cognome *") },
-                    modifier = Modifier.weight(1f),
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF006B5B),
-                        focusedLabelColor = Color(0xFF006B5B)
-                    )
-                )
-            }
-
-            SectionTitle("Informazioni Professionali")
-
-            ProfessionDropdown(
-                selectedProfession = uiState.profession,
-                onProfessionSelected = onProfessionChange
-            )
-
-            OutlinedTextField(
-                value = uiState.specialization,
-                onValueChange = onSpecializationChange,
-                label = { Text("Specializzazione") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Next
-                ),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF006B5B),
-                    focusedLabelColor = Color(0xFF006B5B)
-                )
-            )
-
-            OutlinedTextField(
-                value = uiState.workplace,
-                onValueChange = onWorkplaceChange,
-                label = { Text("Luogo di Lavoro") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Next
-                ),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF006B5B),
-                    focusedLabelColor = Color(0xFF006B5B)
-                )
-            )
-
-            SectionTitle("Informazioni di Contatto")
-
-            OutlinedTextField(
-                value = uiState.city,
-                onValueChange = onCityChange,
-                label = { Text("Città") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Next
-                ),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF006B5B),
-                    focusedLabelColor = Color(0xFF006B5B)
-                )
-            )
-
-            OutlinedTextField(
-                value = uiState.phone,
-                onValueChange = onPhoneChange,
-                label = { Text("Telefono") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Phone,
-                    imeAction = ImeAction.Done
-                ),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF006B5B),
-                    focusedLabelColor = Color(0xFF006B5B)
-                )
-            )
-
-            SectionTitle("Preferenze")
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Checkbox(
-                    checked = uiState.wantsNewsletter,
-                    onCheckedChange = onNewsletterChange,
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = Color(0xFF006B5B)
-                    )
-                )
-                Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Desidero ricevere la newsletter con gli ultimi eventi e aggiornamenti",
-                    fontSize = 14.sp,
-                    color = Color(0xFF004D42)
-                )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Checkbox(
-                    checked = uiState.wantsNotifications,
-                    onCheckedChange = onNotificationsChange,
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = Color(0xFF006B5B)
-                    )
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Desidero ricevere notifiche sui miei eventi preferiti",
-                    fontSize = 14.sp,
-                    color = Color(0xFF004D42)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                onClick = {
-                    onCompleteRegistration()
-                },
-                enabled = !isLoading && uiState.isFormValid,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF006B5B),
-                    contentColor = Color.White
-                ),
-                shape = RoundedCornerShape(28.dp)
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = Color.White,
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text(
-                        text = "Completa Registrazione",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-
-            // Debug info
-            if (uiState.isFormValid) {
-                Text(
-                    text = "✅ Form valido",
+                    text = "Registrandoti accetti i nostri Termini di Servizio e la Privacy Policy",
                     fontSize = 12.sp,
-                    color = Color(0xFF006B5B)
-                )
-            } else {
-                Text(
-                    text = "❌ Compila i campi obbligatori: Nome, Cognome, Professione",
-                    fontSize = 12.sp,
-                    color = Color.Red
+                    color = Color.White.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center,
+                    lineHeight = 16.sp
                 )
             }
         }
     }
 }
 
-@Composable
-private fun SectionTitle(title: String) {
-    Text(
-        text = title,
-        fontSize = 16.sp,
-        fontWeight = FontWeight.Bold,
-        color = Color(0xFF006B5B),
-        modifier = Modifier.padding(top = 8.dp)
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ProfessionDropdown(
-    selectedProfession: String,
-    onProfessionSelected: (String) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    val professions = Constants.MEDICAL_PROFESSIONS
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
-    ) {
-        OutlinedTextField(
-            value = selectedProfession,
-            onValueChange = { },
-            readOnly = true,
-            label = { Text("Professione *") },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF006B5B),
-                focusedLabelColor = Color(0xFF006B5B)
-            )
-        )
-
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            professions.forEach { profession ->
-                DropdownMenuItem(
-                    text = { Text(profession) },
-                    onClick = {
-                        onProfessionSelected(profession)
-                        expanded = false
-                    }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun TermsAndPrivacy() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.9f)
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Completando la registrazione accetti i nostri",
-                fontSize = 12.sp,
-                color = Color(0xFF004D42),
-                textAlign = TextAlign.Center
-            )
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                TextButton(
-                    onClick = { /* TODO: Open Terms */ },
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = "Termini di Servizio",
-                        fontSize = 12.sp,
-                        color = Color(0xFF006B5B)
-                    )
-                }
-
-                Text(
-                    text = "e la",
-                    fontSize = 12.sp,
-                    color = Color(0xFF004D42)
-                )
-
-                TextButton(
-                    onClick = { /* TODO: Open Privacy Policy */ },
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = "Privacy Policy",
-                        fontSize = 12.sp,
-                        color = Color(0xFF006B5B)
-                    )
-                }
-            }
-        }
-    }
+private fun isFormValid(
+    firstName: String,
+    lastName: String,
+    email: String,
+    password: String,
+    confirmPassword: String
+): Boolean {
+    return firstName.isNotBlank() &&
+            lastName.isNotBlank() &&
+            email.isNotBlank() &&
+            android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() &&
+            password.isNotBlank() &&
+            password.length >= 6 &&
+            password == confirmPassword
 }
 
 @Preview(showBackground = true)
@@ -578,7 +528,8 @@ fun RegisterScreenPreview() {
     WombLabTheme {
         RegisterScreen(
             onNavigateBack = { },
-            onRegistrationSuccess = { }
+            onRegistrationSuccess = { },
+            onNavigateToLogin = { }
         )
     }
 }

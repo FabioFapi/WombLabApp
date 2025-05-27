@@ -231,7 +231,7 @@ private fun SearchBar(
         ),
         modifier = modifier
             .focusRequester(focusRequester)
-            .height(48.dp)
+            .height(60.dp)
     )
 }
 

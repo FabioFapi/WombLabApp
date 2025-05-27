@@ -1,5 +1,6 @@
 package com.rix.womblab.data.repository
 
+import android.util.Log
 import com.rix.womblab.data.local.dao.EventDao
 import com.rix.womblab.data.local.dao.FavoriteDao
 import com.rix.womblab.data.local.entities.FavoriteEntity
@@ -26,10 +27,15 @@ class EventRepositoryImpl @Inject constructor(
     private val favoriteDao: FavoriteDao
 ) : EventRepository {
 
+    companion object {
+        private const val TAG = "EventRepositoryImpl"
+    }
+
     override fun getEvents(filter: EventFilter): Flow<Resource<EventsResponse>> = flow {
         emit(Resource.Loading())
 
         try {
+
             val cachedEvents = eventDao.getAllEvents()
             cachedEvents.collect { entities ->
                 if (entities.isNotEmpty()) {
@@ -58,14 +64,32 @@ class EventRepositoryImpl @Inject constructor(
                 featured = filter.featured
             )
 
+
             if (response.isSuccessful) {
                 response.body()?.let { apiResponse ->
-                    val domainResponse = apiResponse.toDomain()
 
-                    val entities = domainResponse.events.map { event -> event.toEntity() }
-                    eventDao.insertEvents(entities)
+                    apiResponse.events.forEachIndexed { index, eventDto ->
+                    }
 
-                    emit(Resource.Success(domainResponse))
+                    try {
+                        val domainResponse = apiResponse.toDomain()
+                        domainResponse.events.forEachIndexed { index, event ->
+                        }
+
+                        try {
+                            val entities = domainResponse.events.map { event -> event.toEntity() }
+
+                            eventDao.insertEvents(entities)
+
+                            emit(Resource.Success(domainResponse))
+                        } catch (e: Exception) {
+                            emit(Resource.Error("Errore salvataggio: ${e.message}"))
+                        }
+                    } catch (e: Exception) {
+                        emit(Resource.Error("Errore mapping: ${e.message}"))
+                    }
+                } ?: run {
+                    emit(Resource.Error("Response vuota"))
                 }
             } else {
                 emit(Resource.Error("Errore nel caricamento eventi: ${response.message()}"))
@@ -80,6 +104,7 @@ class EventRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
 
         try {
+
             eventDao.getUpcomingEvents().collect { entities ->
                 if (entities.isNotEmpty()) {
                     val events = entities.map { entity -> entity.toDomain() }
@@ -88,20 +113,32 @@ class EventRepositoryImpl @Inject constructor(
             }
 
             val currentDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+
             val response = wordPressApi.getUpcomingEvents(
                 page = page,
                 perPage = 15,
                 startDate = currentDate
             )
 
+
             if (response.isSuccessful) {
                 response.body()?.let { apiResponse ->
-                    val events = apiResponse.events.map { eventDto -> eventDto.toDomain() }
 
-                    val entities = events.map { event -> event.toEntity() }
-                    eventDao.insertEvents(entities)
+                    apiResponse.events.forEachIndexed { index, eventDto ->
+                    }
 
-                    emit(Resource.Success(events))
+                    try {
+                        val events = apiResponse.events.map { eventDto -> eventDto.toDomain() }
+
+                        val entities = events.map { event -> event.toEntity() }
+                        eventDao.insertEvents(entities)
+
+                        emit(Resource.Success(events))
+                    } catch (e: Exception) {
+                        emit(Resource.Error("Errore processing: ${e.message}"))
+                    }
+                } ?: run {
+                    emit(Resource.Error("Response vuota"))
                 }
             } else {
                 emit(Resource.Error("Errore nel caricamento eventi: ${response.message()}"))
@@ -116,7 +153,9 @@ class EventRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
 
         try {
+
             val cachedEntities = eventDao.getFeaturedEvents().first()
+
             if (cachedEntities.isNotEmpty()) {
                 val events = cachedEntities.map { entity -> entity.toDomain() }
                 emit(Resource.Success(events))
@@ -125,10 +164,14 @@ class EventRepositoryImpl @Inject constructor(
 
             val response = wordPressApi.getFeaturedEvents()
 
+
             if (response.isSuccessful) {
                 response.body()?.let { apiResponse ->
-                    val events = apiResponse.events.map { eventDto -> eventDto.toDomain() }
 
+                    apiResponse.events.forEachIndexed { index, eventDto ->
+                    }
+
+                    val events = apiResponse.events.map { eventDto -> eventDto.toDomain() }
                     val entities = events.map { event -> event.toEntity() }
                     eventDao.insertEvents(entities)
 
@@ -165,6 +208,7 @@ class EventRepositoryImpl @Inject constructor(
 
     override suspend fun getEventById(eventId: String): Resource<EventDetail> {
         return try {
+
             val cachedEvent = eventDao.getEventById(eventId)
             if (cachedEvent != null) {
                 val event = cachedEvent.toDomain()
@@ -228,6 +272,8 @@ class EventRepositoryImpl @Inject constructor(
 
     override suspend fun searchEvents(query: String, page: Int): Resource<List<Event>> {
         return try {
+            Log.d(TAG, "🔍 searchEvents: '$query', page=$page")
+
             val response = wordPressApi.searchEvents(
                 searchQuery = query,
                 page = page,
@@ -236,8 +282,8 @@ class EventRepositoryImpl @Inject constructor(
 
             if (response.isSuccessful) {
                 response.body()?.let { apiResponse ->
-                    val events = apiResponse.events.map { eventDto -> eventDto.toDomain() }
 
+                    val events = apiResponse.events.map { eventDto -> eventDto.toDomain() }
                     val entities = events.map { event -> event.toEntity() }
                     eventDao.insertEvents(entities)
 
@@ -254,6 +300,7 @@ class EventRepositoryImpl @Inject constructor(
 
     override suspend fun refreshEvents(): Resource<Unit> {
         return try {
+
             eventDao.deleteOldEvents(LocalDateTime.now().minusDays(1))
 
             val response = wordPressApi.getUpcomingEvents(
@@ -262,11 +309,14 @@ class EventRepositoryImpl @Inject constructor(
                 startDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
             )
 
+
             if (response.isSuccessful) {
                 response.body()?.let { apiResponse ->
+
                     val events = apiResponse.events.map { eventDto -> eventDto.toDomain() }
                     val entities = events.map { event -> event.toEntity() }
                     eventDao.insertEvents(entities)
+
                 }
                 Resource.Success(Unit)
             } else {

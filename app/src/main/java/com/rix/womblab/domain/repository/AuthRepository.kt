@@ -21,4 +21,6 @@ interface AuthRepository {
     suspend fun getUserProfile(userId: String): Resource<UserProfile?>
     suspend fun isRegistrationCompleted(userId: String): Boolean
     suspend fun setRegistrationCompleted(userId: String): Resource<Unit>
+    suspend fun signInWithEmail(email: String, password: String): Resource<User>
+    suspend fun signUpWithEmail(firstName: String, lastName: String, email: String, password: String): Resource<User>
 }

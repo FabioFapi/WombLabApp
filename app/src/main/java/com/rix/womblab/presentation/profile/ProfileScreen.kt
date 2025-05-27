@@ -1,6 +1,6 @@
 package com.rix.womblab.presentation.profile
 
-import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,6 +34,7 @@ import coil.request.ImageRequest
 import com.rix.womblab.presentation.components.ErrorMessage
 import com.rix.womblab.presentation.components.LoadingIndicator
 import com.rix.womblab.presentation.theme.WombLabTheme
+import com.rix.womblab.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,15 +45,10 @@ fun ProfileScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val pullToRefreshState = rememberPullToRefreshState()
 
-    // IMPORTANTE: Questo LaunchedEffect con DEBUG
     LaunchedEffect(uiState.logoutSuccess) {
-        Log.d("ProfileScreen", "🎯 LaunchedEffect - logoutSuccess: ${uiState.logoutSuccess}")
         if (uiState.logoutSuccess) {
-            Log.d("ProfileScreen", "🎯 Chiamando onLogoutSuccess()")
-            onLogoutSuccess() // Chiama il callback per navigare
-
-            Log.d("ProfileScreen", "🎯 Chiamando viewModel.clearLogoutSuccess()")
-            viewModel.clearLogoutSuccess() // Pulisce lo stato
+            onLogoutSuccess()
+            viewModel.clearLogoutSuccess()
         }
     }
 
@@ -360,7 +357,7 @@ private fun StatsSection(
 
             StatItem(
                 icon = Icons.Default.Event,
-                value = "🔬",
+                value = "",
                 label = "WombLab",
                 color = MaterialTheme.colorScheme.primary
             )
@@ -541,13 +538,33 @@ private fun ActionsSection(
                 modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Box(
+                    modifier = Modifier.size(50.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                            .background(color = Color.White)
+                    )
+
+                    Image(
+                        painter = painterResource(id = R.drawable.womblab_logo),
+                        contentDescription = "WombLab Logo",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                }
                 Text(
-                    text = "🔬 WombLab",
+                    text = " WombLab",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "La tua app per eventi del benessere",
+                    text = "La tua app per eventi formativi",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center

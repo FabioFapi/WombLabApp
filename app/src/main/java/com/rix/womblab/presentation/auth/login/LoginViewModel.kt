@@ -21,7 +21,8 @@ data class LoginState(
     val user: User? = null,
     val error: String? = null,
     val isLoggedIn: Boolean = false,
-    val isRegistrationComplete: Boolean = false
+    val isRegistrationComplete: Boolean = false,
+    val loginMethod: String? = null
 )
 
 @HiltViewModel
@@ -103,13 +104,71 @@ class LoginViewModel @Inject constructor(
         resetToLoggedOutState()
     }
 
+    fun signInWithEmail(email: String, password: String) {
+        viewModelScope.launch {
+            _loginState.value = _loginState.value.copy(
+                isLoading = true,
+                error = null,
+                loginMethod = "email"
+            )
+
+            try {
+                when (val result = authRepository.signInWithEmail(email, password)) {
+                    is Resource.Success -> {
+                        val user = result.data!!
+
+                        val isRegistrationCompleted = try {
+                            authRepository.isRegistrationCompleted(user.id)
+                        } catch (e: Exception) {
+                            false
+                        }
+
+                        _loginState.value = LoginState(
+                            isLoading = false,
+                            user = user,
+                            isLoggedIn = true,
+                            isRegistrationComplete = isRegistrationCompleted,
+                            error = null,
+                            loginMethod = null
+                        )
+                    }
+                    is Resource.Error -> {
+                        _loginState.value = LoginState(
+                            isLoading = false,
+                            user = null,
+                            isLoggedIn = false,
+                            isRegistrationComplete = false,
+                            error = result.message ?: "Errore durante il login",
+                            loginMethod = null
+                        )
+                    }
+                    is Resource.Loading -> {
+                    }
+                }
+            } catch (e: Exception) {
+                _loginState.value = LoginState(
+                    isLoading = false,
+                    user = null,
+                    isLoggedIn = false,
+                    isRegistrationComplete = false,
+                    error = "Errore durante il login: ${e.message}",
+                    loginMethod = null
+                )
+            }
+        }
+    }
+
     fun getGoogleSignInIntent(): Intent {
         return authRepository.getGoogleSignInClient().signInIntent
     }
 
     fun handleGoogleSignInResult(data: Intent?) {
         viewModelScope.launch {
-            _loginState.value = _loginState.value.copy(isLoading = true, error = null)
+            _loginState.value = _loginState.value.copy(
+                isLoading = true,
+                error = null,
+                loginMethod = "google"
+            )
 
             try {
                 val account = authRepository.getSignedInAccountFromIntent(data)
@@ -118,18 +177,13 @@ class LoginViewModel @Inject constructor(
                         is Resource.Success -> {
                             val user = result.data!!
 
-                            val isRegistrationCompleted = try {
-                                authRepository.isRegistrationCompleted(user.id)
-                            } catch (e: Exception) {
-                                false
-                            }
-
                             _loginState.value = LoginState(
                                 isLoading = false,
                                 user = user,
                                 isLoggedIn = true,
-                                isRegistrationComplete = isRegistrationCompleted,
-                                error = null
+                                isRegistrationComplete = true,
+                                error = null,
+                                loginMethod = null
                             )
                         }
                         is Resource.Error -> {
@@ -138,7 +192,8 @@ class LoginViewModel @Inject constructor(
                                 user = null,
                                 isLoggedIn = false,
                                 isRegistrationComplete = false,
-                                error = result.message ?: "Errore durante il login con Google"
+                                error = result.message ?: "Errore durante il login con Google",
+                                loginMethod = null
                             )
                         }
                         is Resource.Loading -> {
@@ -150,7 +205,8 @@ class LoginViewModel @Inject constructor(
                         user = null,
                         isLoggedIn = false,
                         isRegistrationComplete = false,
-                        error = "Login Google annullato o fallito"
+                        error = "Login Google annullato o fallito",
+                        loginMethod = null
                     )
                 }
             } catch (e: Exception) {
@@ -159,7 +215,8 @@ class LoginViewModel @Inject constructor(
                     user = null,
                     isLoggedIn = false,
                     isRegistrationComplete = false,
-                    error = "Errore durante il login: ${e.message}"
+                    error = "Errore durante il login: ${e.message}",
+                    loginMethod = null
                 )
             }
         }

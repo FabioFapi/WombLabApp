@@ -2,6 +2,7 @@ package com.rix.womblab.utils
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import com.rix.womblab.presentation.auth.register.UserProfile
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.serialization.encodeToString
@@ -41,10 +42,17 @@ class PreferencesUtils @Inject constructor(
     }
 
     fun shouldRefresh(): Boolean {
-        val lastRefresh = getLastRefresh() ?: return true
+        val lastRefresh = getLastRefresh()
         val now = LocalDateTime.now()
         val thresholdMinutes = Constants.REFRESH_THRESHOLD_MINUTES
-        return lastRefresh.plusMinutes(thresholdMinutes.toLong()).isBefore(now)
+
+        if (lastRefresh == null) {
+            return true
+        }
+
+        val shouldRefresh = lastRefresh.plusMinutes(thresholdMinutes.toLong()).isBefore(now)
+        val timeSinceLastRefresh = java.time.Duration.between(lastRefresh, now).toMinutes()
+        return true
     }
 
     fun setOnboardingCompleted(completed: Boolean) {
@@ -60,7 +68,6 @@ class PreferencesUtils @Inject constructor(
             val profileJson = json.encodeToString(profile)
             prefs.edit().putString(PREF_USER_PROFILE, profileJson).apply()
         } catch (e: Exception) {
-
         }
     }
 
@@ -96,6 +103,10 @@ class PreferencesUtils @Inject constructor(
 
     fun clearForcedLogout() {
         prefs.edit().putBoolean(PREF_FORCE_LOGOUT, false).apply()
+    }
+
+    fun clearRefreshCache() {
+        prefs.edit().remove(Constants.PREF_LAST_REFRESH).apply()
     }
 
     companion object {

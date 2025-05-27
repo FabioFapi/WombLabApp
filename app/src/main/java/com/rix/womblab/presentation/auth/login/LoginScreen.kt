@@ -2,8 +2,11 @@ package com.rix.womblab.presentation.auth.login
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -12,19 +15,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.rix.womblab.R
 import com.rix.womblab.presentation.theme.WombLabTheme
 
 @Composable
 fun LoginScreen(
     onLoginSuccess: (needsRegistration: Boolean) -> Unit,
+    onNavigateToSignUp: () -> Unit = {},
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val loginState by viewModel.loginState.collectAsStateWithLifecycle()
@@ -39,11 +47,6 @@ fun LoginScreen(
     LaunchedEffect(loginState.isLoggedIn, loginState.isRegistrationComplete) {
         if (loginState.isLoggedIn && loginState.user != null) {
             onLoginSuccess(!loginState.isRegistrationComplete)
-        }
-    }
-
-    loginState.error?.let { error ->
-        LaunchedEffect(error) {
         }
     }
 
@@ -80,10 +83,13 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "🔬",
-                        fontSize = 48.sp,
-                        textAlign = TextAlign.Center
+                    Image(
+                        painter = painterResource(id = R.drawable.womblab_logo),
+                        contentDescription = "WombLab Logo",
+                        modifier = Modifier
+                            .size(80.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
                     )
                 }
             }
@@ -118,6 +124,47 @@ fun LoginScreen(
             )
 
             Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Non hai un account? ",
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontSize = 14.sp
+                )
+                Text(
+                    text = "Registrati",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier.clickable { onNavigateToSignUp() }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            loginState.error?.let { error ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.Red.copy(alpha = 0.1f)
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = error,
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(16.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             Text(
                 text = "Accedendo accetti i nostri Termini di Servizio e la Privacy Policy",
@@ -160,9 +207,13 @@ private fun LoginButton(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(
-                    text = "🔐",
-                    fontSize = 20.sp
+                Image(
+                    painter = painterResource(id = R.drawable.google_logo),
+                    contentDescription = "Google Logo",
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
                 )
 
                 Spacer(modifier = Modifier.width(12.dp))

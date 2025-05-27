@@ -1,6 +1,10 @@
 package com.rix.womblab.di
 
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.rix.womblab.data.remote.api.WordPressApi
+import com.rix.womblab.data.remote.dto.EventVenueDto
+import com.rix.womblab.data.remote.dto.VenueDeserializer
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,6 +32,15 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    fun provideGson(): Gson {
+        return GsonBuilder()
+            .registerTypeAdapter(EventVenueDto::class.java, VenueDeserializer())
+            .setLenient()
+            .create()
+    }
+
+    @Provides
+    @Singleton
     fun provideOkHttpClient(): OkHttpClient {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
@@ -44,12 +57,13 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideRetrofit(
-        okHttpClient: OkHttpClient
+        okHttpClient: OkHttpClient,
+        gson: Gson
     ): Retrofit {
         return Retrofit.Builder()
             .baseUrl(WordPressApi.BASE_URL)
             .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
     }
 

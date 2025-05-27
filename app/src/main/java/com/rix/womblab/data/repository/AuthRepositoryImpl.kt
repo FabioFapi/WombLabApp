@@ -9,10 +9,12 @@ import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.rix.womblab.domain.model.User
 import com.rix.womblab.domain.repository.AuthRepository
 import com.rix.womblab.presentation.auth.register.UserProfile
 import com.rix.womblab.utils.PreferencesUtils
+import com.rix.womblab.utils.Resource
 import com.rix.womblab.utils.Resource as WombLabResource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
@@ -69,6 +71,28 @@ class AuthRepositoryImpl @Inject constructor(
 
                 preferencesUtils.clearForcedLogout()
                 preferencesUtils.setUserId(firebaseUser.uid)
+
+                val isRegistrationCompleted = preferencesUtils.isRegistrationCompleted()
+                if (!isRegistrationCompleted) {
+                    val names = user.displayName.split(" ")
+                    val firstName = names.firstOrNull() ?: ""
+                    val lastName = names.drop(1).joinToString(" ")
+
+                    val userProfile = UserProfile(
+                        firstName = firstName,
+                        lastName = lastName,
+                        profession = "Professionista Sanitario",
+                        specialization = null,
+                        workplace = null,
+                        city = null,
+                        phone = null,
+                        wantsNewsletter = true,
+                        wantsNotifications = true
+                    )
+
+                    preferencesUtils.setUserProfile(userProfile)
+                    preferencesUtils.setRegistrationCompleted(true)
+                }
 
                 WombLabResource.Success(user)
             } else {
@@ -146,6 +170,64 @@ class AuthRepositoryImpl @Inject constructor(
             WombLabResource.Success(Unit)
         } catch (e: Exception) {
             WombLabResource.Error(e.message ?: "Errore durante l'aggiornamento dello stato di registrazione")
+        }
+    }
+
+    override suspend fun signInWithEmail(email: String, password: String): Resource<User> {
+        return try {
+            val authResult = firebaseAuth.signInWithEmailAndPassword(email, password).await()
+            val firebaseUser = authResult.user
+
+            if (firebaseUser != null) {
+                val user = User(
+                    id = firebaseUser.uid,
+                    email = firebaseUser.email ?: "",
+                    displayName = firebaseUser.displayName ?: "",
+                    photoUrl = firebaseUser.photoUrl?.toString(),
+                    isEmailVerified = firebaseUser.isEmailVerified
+                )
+
+                preferencesUtils.clearForcedLogout()
+                preferencesUtils.setUserId(firebaseUser.uid)
+
+                WombLabResource.Success(user)
+            } else {
+                WombLabResource.Error("Login fallito")
+            }
+        } catch (e: Exception) {
+            WombLabResource.Error(e.message ?: "Errore sconosciuto")
+        }
+    }
+
+    override suspend fun signUpWithEmail(firstName: String, lastName: String, email: String, password: String): Resource<User> {
+        return try {
+            val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
+            val firebaseUser = authResult.user
+
+            if (firebaseUser != null) {
+                val profileUpdates = UserProfileChangeRequest.Builder()
+                    .setDisplayName("$firstName $lastName")
+                    .build()
+
+                firebaseUser.updateProfile(profileUpdates).await()
+
+                val user = User(
+                    id = firebaseUser.uid,
+                    email = firebaseUser.email ?: "",
+                    displayName = "$firstName $lastName",
+                    photoUrl = firebaseUser.photoUrl?.toString(),
+                    isEmailVerified = firebaseUser.isEmailVerified
+                )
+
+                preferencesUtils.clearForcedLogout()
+                preferencesUtils.setUserId(firebaseUser.uid)
+
+                WombLabResource.Success(user)
+            } else {
+                WombLabResource.Error("Registrazione fallita")
+            }
+        } catch (e: Exception) {
+            WombLabResource.Error(e.message ?: "Errore sconosciuto")
         }
     }
 }

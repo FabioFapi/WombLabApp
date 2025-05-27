@@ -1,73 +1,74 @@
 package com.rix.womblab.data.remote.dto
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import com.google.gson.annotations.SerializedName
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
+import java.lang.reflect.Type
 
-@Serializable
 data class EventsResponseDto(
     val events: List<EventDto>,
     val total: Int,
-    @SerialName("total_pages")
+    @SerializedName("total_pages")
     val totalPages: Int,
-    @SerialName("rest_url")
+    @SerializedName("rest_url")
     val restUrl: String
 )
 
-@Serializable
 data class EventDto(
     val id: Int,
-    @SerialName("global_id")
+    @SerializedName("global_id")
     val globalId: String,
     val title: String,
     val description: String,
     val excerpt: String = "",
     val url: String,
-    @SerialName("rest_url")
+    @SerializedName("rest_url")
     val restUrl: String,
     val image: EventImageDto?,
-    @SerialName("all_day")
+    @SerializedName("all_day")
     val allDay: Boolean,
-    @SerialName("start_date")
+    @SerializedName("start_date")
     val startDate: String? = null,
-    @SerialName("end_date")
+    @SerializedName("end_date")
     val endDate: String? = null,
-    @SerialName("utc_start_date")
+    @SerializedName("utc_start_date")
     val utcStartDate: String? = null,
-    @SerialName("utc_end_date")
+    @SerializedName("utc_end_date")
     val utcEndDate: String? = null,
-    @SerialName("start_date_details")
+    @SerializedName("start_date_details")
     val startDateDetails: DateDetailsDto? = null,
-    @SerialName("end_date_details")
+    @SerializedName("end_date_details")
     val endDateDetails: DateDetailsDto? = null,
-    @SerialName("utc_start_date_details")
+    @SerializedName("utc_start_date_details")
     val utcStartDateDetails: DateDetailsDto? = null,
-    @SerialName("utc_end_date_details")
+    @SerializedName("utc_end_date_details")
     val utcEndDateDetails: DateDetailsDto? = null,
     val timezone: String,
-    @SerialName("timezone_abbr")
+    @SerializedName("timezone_abbr")
     val timezoneAbbr: String,
     val cost: String = "",
-    @SerialName("cost_details")
+    @SerializedName("cost_details")
     val costDetails: CostDetailsDto,
     val website: String? = null,
-    @SerialName("show_map")
+    @SerializedName("show_map")
     val showMap: Boolean,
-    @SerialName("show_map_link")
+    @SerializedName("show_map_link")
     val showMapLink: Boolean,
-    @SerialName("hide_from_listings")
+    @SerializedName("hide_from_listings")
     val hideFromListings: Boolean,
     val sticky: Boolean,
     val featured: Boolean,
     val categories: List<EventCategoryDto> = emptyList(),
     val tags: List<EventTagDto> = emptyList(),
-    val venue: EventVenueDto?,
+    // 🔧 FIXED: venue ora gestito con custom deserializer
+    val venue: EventVenueDto? = null,
     val organizer: List<EventOrganizerDto> = emptyList(),
-    @SerialName("custom_fields")
+    @SerializedName("custom_fields")
     val customFields: Map<String, CustomFieldDto> = emptyMap(),
     val status: String = "publish"
 )
 
-@Serializable
 data class EventImageDto(
     val url: String,
     val id: Int,
@@ -78,17 +79,15 @@ data class EventImageDto(
     val sizes: Map<String, ImageSizeDto> = emptyMap()
 )
 
-@Serializable
 data class ImageSizeDto(
     val width: Int,
     val height: Int,
-    @SerialName("mime-type")
+    @SerializedName("mime-type")
     val mimeType: String,
     val filesize: Int,
     val url: String
 )
 
-@Serializable
 data class DateDetailsDto(
     val year: String = "2025",
     val month: String = "01",
@@ -98,18 +97,16 @@ data class DateDetailsDto(
     val seconds: String = "00"
 )
 
-@Serializable
 data class CostDetailsDto(
-    @SerialName("currency_symbol")
+    @SerializedName("currency_symbol")
     val currencySymbol: String = "",
-    @SerialName("currency_code")
+    @SerializedName("currency_code")
     val currencyCode: String = "",
-    @SerialName("currency_position")
+    @SerializedName("currency_position")
     val currencyPosition: String = "",
     val values: List<String> = emptyList()
 )
 
-@Serializable
 data class EventVenueDto(
     val id: Int,
     val venue: String,
@@ -121,52 +118,84 @@ data class EventVenueDto(
     val stateprovince: String? = null,
     val zip: String? = null,
     val website: String? = null,
-    @SerialName("show_map")
+    @SerializedName("show_map")
     val showMap: Boolean,
-    @SerialName("show_map_link")
+    @SerializedName("show_map_link")
     val showMapLink: Boolean,
-    @SerialName("global_id")
+    @SerializedName("global_id")
     val globalId: String
 )
 
-@Serializable
 data class EventOrganizerDto(
     val id: Int,
     val organizer: String,
     val slug: String,
     val phone: String? = null,
     val email: String? = null,
-    @SerialName("global_id")
+    @SerializedName("global_id")
     val globalId: String
 )
 
-@Serializable
 data class EventCategoryDto(
     val id: Int,
     val name: String,
     val slug: String,
-    @SerialName("term_group")
+    @SerializedName("term_group")
     val termGroup: Int,
-    @SerialName("term_taxonomy_id")
+    @SerializedName("term_taxonomy_id")
     val termTaxonomyId: Int,
     val taxonomy: String,
     val description: String = "",
     val parent: Int,
     val count: Int,
     val filter: String,
-    @SerialName("term_order")
+    @SerializedName("term_order")
     val termOrder: String
 )
 
-@Serializable
 data class EventTagDto(
     val id: Int,
     val name: String,
     val slug: String
 )
 
-@Serializable
 data class CustomFieldDto(
     val label: String,
     val value: String
 )
+
+class VenueDeserializer : JsonDeserializer<EventVenueDto?> {
+    override fun deserialize(
+        json: JsonElement?,
+        typeOfT: Type?,
+        context: JsonDeserializationContext?
+    ): EventVenueDto? {
+        return try {
+            when {
+                json == null || json.isJsonNull -> null
+                json.isJsonArray -> null
+                json.isJsonObject -> {
+                    val jsonObj = json.asJsonObject
+                    EventVenueDto(
+                        id = jsonObj.get("id")?.asInt ?: 0,
+                        venue = jsonObj.get("venue")?.asString ?: "",
+                        slug = jsonObj.get("slug")?.asString ?: "",
+                        address = jsonObj.get("address")?.asString ?: "",
+                        city = jsonObj.get("city")?.asString ?: "",
+                        country = jsonObj.get("country")?.asString ?: "",
+                        province = jsonObj.get("province")?.asString,
+                        stateprovince = jsonObj.get("stateprovince")?.asString,
+                        zip = jsonObj.get("zip")?.asString,
+                        website = jsonObj.get("website")?.asString,
+                        showMap = jsonObj.get("show_map")?.asBoolean ?: false,
+                        showMapLink = jsonObj.get("show_map_link")?.asBoolean ?: false,
+                        globalId = jsonObj.get("global_id")?.asString ?: ""
+                    )
+                }
+                else -> null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+}

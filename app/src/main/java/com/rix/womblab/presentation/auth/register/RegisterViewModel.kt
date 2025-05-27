@@ -1,11 +1,14 @@
 package com.rix.womblab.presentation.auth.register
 
+import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rix.womblab.domain.model.User
 import com.rix.womblab.domain.model.UserPreferences
 import com.rix.womblab.domain.usecase.auth.GetCurrentUserUseCase
+import com.rix.womblab.domain.usecase.auth.LoginUseCase
 import com.rix.womblab.domain.usecase.auth.UpdateUserProfileUseCase
+import com.rix.womblab.domain.repository.AuthRepository
 import com.rix.womblab.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -15,26 +18,16 @@ import javax.inject.Inject
 data class RegisterUiState(
     val isLoading: Boolean = false,
     val currentUser: User? = null,
-    val firstName: String = "",
-    val lastName: String = "",
-    val profession: String = "",
-    val specialization: String = "",
-    val workplace: String = "",
-    val city: String = "",
-    val phone: String = "",
-    val wantsNewsletter: Boolean = true,
-    val wantsNotifications: Boolean = true,
     val error: String? = null,
-    val isRegistrationComplete: Boolean = false
-) {
-    val isFormValid: Boolean
-        get() = firstName.isNotBlank() &&
-                lastName.isNotBlank() &&
-                profession.isNotBlank()
-}
+    val isRegistrationComplete: Boolean = false,
+    val registrationMethod: String? = null,
+    val needsProfileCompletion: Boolean = false
+)
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
+    private val authRepository: AuthRepository,
+    private val loginUseCase: LoginUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val updateUserProfileUseCase: UpdateUserProfileUseCase
 ) : ViewModel() {
@@ -43,10 +36,10 @@ class RegisterViewModel @Inject constructor(
     val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
 
     init {
-        setupCurrentUser()
+        checkCurrentUser()
     }
 
-    private fun setupCurrentUser() {
+    private fun checkCurrentUser() {
         viewModelScope.launch {
             getCurrentUserUseCase().collect { firebaseUser ->
                 if (firebaseUser != null) {
@@ -58,139 +51,140 @@ class RegisterViewModel @Inject constructor(
                         isEmailVerified = firebaseUser.isEmailVerified
                     )
 
+                    val isRegistrationCompleted = try {
+                        authRepository.isRegistrationCompleted(firebaseUser.uid)
+                    } catch (e: Exception) {
+                        false
+                    }
+
                     _uiState.value = _uiState.value.copy(
                         currentUser = user,
-                        firstName = extractFirstName(user.displayName),
-                        lastName = extractLastName(user.displayName)
+                        needsProfileCompletion = !isRegistrationCompleted
                     )
                 } else {
                     _uiState.value = _uiState.value.copy(
-                        error = "Utente non autenticato. Effettua prima il login."
+                        currentUser = null,
+                        needsProfileCompletion = false
                     )
                 }
             }
         }
     }
 
-    private fun extractFirstName(displayName: String): String {
-        return displayName.split(" ").firstOrNull() ?: ""
-    }
-
-    private fun extractLastName(displayName: String): String {
-        val parts = displayName.split(" ")
-        return if (parts.size > 1) parts.drop(1).joinToString(" ") else ""
-    }
-
-    fun onFirstNameChange(firstName: String) {
-        _uiState.value = _uiState.value.copy(firstName = firstName)
-    }
-
-    fun onLastNameChange(lastName: String) {
-        _uiState.value = _uiState.value.copy(lastName = lastName)
-    }
-
-    fun onProfessionChange(profession: String) {
-        _uiState.value = _uiState.value.copy(profession = profession)
-    }
-
-    fun onSpecializationChange(specialization: String) {
-        _uiState.value = _uiState.value.copy(specialization = specialization)
-    }
-
-    fun onWorkplaceChange(workplace: String) {
-        _uiState.value = _uiState.value.copy(workplace = workplace)
-    }
-
-    fun onCityChange(city: String) {
-        _uiState.value = _uiState.value.copy(city = city)
-    }
-
-    fun onPhoneChange(phone: String) {
-        _uiState.value = _uiState.value.copy(phone = phone)
-    }
-
-    fun onNewsletterChange(wantsNewsletter: Boolean) {
-        _uiState.value = _uiState.value.copy(wantsNewsletter = wantsNewsletter)
-    }
-
-    fun onNotificationsChange(wantsNotifications: Boolean) {
-        _uiState.value = _uiState.value.copy(wantsNotifications = wantsNotifications)
-    }
-
-    fun completeRegistration() {
-        val currentState = _uiState.value
-
-        if (!currentState.isFormValid) {
-            _uiState.value = currentState.copy(
-                error = "Compila tutti i campi obbligatori: nome, cognome e professione"
-            )
-            return
-        }
-
-        if (currentState.currentUser == null) {
-            _uiState.value = currentState.copy(
-                error = "Errore: utente non trovato. Rieffettua il login."
-            )
-            return
-        }
-
+    fun signUpWithEmail(firstName: String, lastName: String, email: String, password: String) {
         viewModelScope.launch {
-            _uiState.value = currentState.copy(isLoading = true, error = null)
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                error = null,
+                registrationMethod = "email"
+            )
 
             try {
-                val updatedUser = currentState.currentUser.copy(
-                    displayName = "${currentState.firstName} ${currentState.lastName}",
-                    preferences = UserPreferences(
-                        notificationsEnabled = currentState.wantsNotifications,
-                        emailNotifications = currentState.wantsNewsletter,
-                        pushNotifications = currentState.wantsNotifications,
-                        favoriteCategories = if (currentState.profession.isNotBlank()) {
-                            listOf(currentState.profession)
-                        } else {
-                            emptyList()
-                        }
-                    )
-                )
-
-                println("🚀 Calling updateUserProfileUseCase...")
-                when (val result = updateUserProfileUseCase(updatedUser, currentState.toUserProfile())) {
+                when (val result = authRepository.signUpWithEmail(firstName, lastName, email, password)) {
                     is Resource.Success -> {
-                        _uiState.value = currentState.copy(
-                            isLoading = false,
-                            isRegistrationComplete = true,
-                            error = null
+                        val user = result.data!!
+
+                        val userProfile = UserProfile(
+                            firstName = firstName,
+                            lastName = lastName,
+                            profession = "Professionista Sanitario",
+                            specialization = null,
+                            workplace = null,
+                            city = null,
+                            phone = null,
+                            wantsNewsletter = true,
+                            wantsNotifications = true
                         )
+
+                        when (val profileResult = updateUserProfileUseCase(user, userProfile)) {
+                            is Resource.Success -> {
+                                _uiState.value = _uiState.value.copy(
+                                    isLoading = false,
+                                    currentUser = user,
+                                    isRegistrationComplete = true,
+                                    registrationMethod = null
+                                )
+                            }
+                            is Resource.Error -> {
+                                _uiState.value = _uiState.value.copy(
+                                    isLoading = false,
+                                    error = profileResult.message ?: "Errore nel salvataggio del profilo",
+                                    registrationMethod = null
+                                )
+                            }
+                            is Resource.Loading -> {
+                            }
+                        }
                     }
                     is Resource.Error -> {
-                        _uiState.value = currentState.copy(
+                        _uiState.value = _uiState.value.copy(
                             isLoading = false,
-                            error = result.message ?: "Errore durante il completamento della registrazione"
+                            error = result.message ?: "Errore durante la registrazione",
+                            registrationMethod = null
                         )
                     }
                     is Resource.Loading -> {
                     }
                 }
             } catch (e: Exception) {
-                _uiState.value = currentState.copy(
+                _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = "Errore imprevisto: ${e.message}"
+                    error = "Errore durante la registrazione: ${e.message}",
+                    registrationMethod = null
                 )
             }
         }
     }
 
-    private fun RegisterUiState.toUserProfile(): UserProfile {
-        return UserProfile(
-            firstName = firstName,
-            lastName = lastName,
-            profession = profession,
-            specialization = specialization.takeIf { it.isNotBlank() },
-            workplace = workplace.takeIf { it.isNotBlank() },
-            city = city.takeIf { it.isNotBlank() },
-            phone = phone.takeIf { it.isNotBlank() },
-            wantsNewsletter = wantsNewsletter,
-            wantsNotifications = wantsNotifications
-        )
+    fun getGoogleSignInIntent(): Intent {
+        return authRepository.getGoogleSignInClient().signInIntent
+    }
+
+    fun handleGoogleSignInResult(data: Intent?) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                error = null,
+                registrationMethod = "google"
+            )
+
+            try {
+                val account = authRepository.getSignedInAccountFromIntent(data)
+                if (account != null) {
+                    when (val result = loginUseCase(account)) {
+                        is Resource.Success -> {
+                            _uiState.value = _uiState.value.copy(
+                                isLoading = false,
+                                currentUser = result.data,
+                                isRegistrationComplete = true,
+                                registrationMethod = null
+                            )
+                        }
+                        is Resource.Error -> {
+                            _uiState.value = _uiState.value.copy(
+                                isLoading = false,
+                                error = result.message ?: "Errore durante la registrazione con Google",
+                                registrationMethod = null
+                            )
+                        }
+                        is Resource.Loading -> {
+                        }
+                    }
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = "Registrazione Google annullata o fallita",
+                        registrationMethod = null
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = "Errore durante la registrazione: ${e.message}",
+                    registrationMethod = null
+                )
+            }
+        }
     }
 
     fun clearError() {

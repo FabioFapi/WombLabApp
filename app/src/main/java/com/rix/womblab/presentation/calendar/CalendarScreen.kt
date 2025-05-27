@@ -358,7 +358,7 @@ private fun SelectedDateSection(
                     EmptyState(
                         title = "Nessun evento",
                         description = "Non ci sono eventi programmati per questa data",
-                        emoji = "📅",
+                        emoji = "\uD83D\uDCC5",
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
