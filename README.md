@@ -357,8 +357,8 @@ Questo progetto è licenziato sotto la **MIT License** - vedi il file [LICENSE](
 ## 👨‍💻 Autore
 
 **Il Tuo Nome**
-- GitHub: [@tuousername](https://github.com/FabioFapi)
-- LinkedIn: [Il Tuo Profilo](https://www.linkedin.com/in/fabio-recchia-435633339/)
+- GitHub: [FabioFapi](https://github.com/FabioFapi)
+- LinkedIn: [Fabio Recchia](https://www.linkedin.com/in/fabio-recchia-435633339/)
 - Email: recchiappmobile@gmail.com
 
 ---
