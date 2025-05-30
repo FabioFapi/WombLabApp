@@ -343,7 +343,6 @@ Soluzione: Incrementa DATABASE_VERSION e aggiungi migration appropriata
 
 - 📧 **Email**: recchiappmobile@gmail.com
 - 🐛 **Bug Reports**: [GitHub Issues](https://github.com/FabioFapi/WombLabApp/issues)
-- 💬 **Discussioni**: [GitHub Discussions](https://github.com/FabioFapi/WombLabApp/discussions)
 - 📖 **Documentation**: [Wiki](https://github.com/FabioFapi/WombLabApp/wiki)
 
 ---
