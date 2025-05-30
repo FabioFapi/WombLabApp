@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.rix.womblab.data.local.dao.EventDao
 import com.rix.womblab.data.local.dao.FavoriteDao
+import com.rix.womblab.data.local.dao.NotificationDao
 import com.rix.womblab.data.local.database.WombLabDatabase
 import dagger.Module
 import dagger.Provides
@@ -25,7 +26,9 @@ object DatabaseModule {
             context.applicationContext,
             WombLabDatabase::class.java,
             WombLabDatabase.DATABASE_NAME
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides
@@ -36,5 +39,10 @@ object DatabaseModule {
     @Provides
     fun provideFavoriteDao(database: WombLabDatabase): FavoriteDao {
         return database.favoriteDao()
+    }
+
+    @Provides
+    fun provideNotificationDao(database: WombLabDatabase): NotificationDao {
+        return database.notificationDao()
     }
 }

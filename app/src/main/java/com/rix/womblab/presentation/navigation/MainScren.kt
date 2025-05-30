@@ -23,6 +23,7 @@ import com.rix.womblab.presentation.calendar.CalendarScreen
 import com.rix.womblab.presentation.detail.EventDetailScreen
 import com.rix.womblab.presentation.home.HomeScreen
 import com.rix.womblab.presentation.profile.ProfileScreen
+import com.rix.womblab.presentation.notifications.NotificationsScreen
 import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -186,7 +187,27 @@ fun MainScreen(
                 composable(Screen.Home.route) {
                     HomeScreen(
                         onEventClick = { eventId ->
-                            navController.navigate(Screen.EventDetail.createRoute(eventId))
+                            navController.navigate("event_detail/$eventId")
+                        },
+                        onNavigateToNotifications = {
+                            navController.navigate(Screen.Notifications.route)
+                        }
+                    )
+                }
+
+                composable(
+                    route = Screen.Notifications.route,
+                    enterTransition = {
+                        slideInHorizontally(initialOffsetX = { it }) + fadeIn()
+                    },
+                    exitTransition = {
+                        slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
+                    }
+                ) {
+                    NotificationsScreen(
+                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateToEvent = { eventId ->
+                            navController.navigate("event_detail/$eventId")
                         }
                     )
                 }

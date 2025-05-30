@@ -10,7 +10,9 @@ import com.rix.womblab.data.remote.api.WordPressApi
 import com.rix.womblab.data.remote.dto.toDomain
 import com.rix.womblab.domain.model.*
 import com.rix.womblab.domain.repository.EventRepository
+import com.rix.womblab.utils.NewEventsTracker
 import com.rix.womblab.utils.Resource
+import com.rix.womblab.utils.WombLabNotificationManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -24,7 +26,9 @@ import javax.inject.Singleton
 class EventRepositoryImpl @Inject constructor(
     private val wordPressApi: WordPressApi,
     private val eventDao: EventDao,
-    private val favoriteDao: FavoriteDao
+    private val favoriteDao: FavoriteDao,
+    private val newEventsTracker: NewEventsTracker,
+    private val notificationManager: WombLabNotificationManager
 ) : EventRepository {
 
     companion object {
@@ -35,7 +39,6 @@ class EventRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
 
         try {
-
             val cachedEvents = eventDao.getAllEvents()
             cachedEvents.collect { entities ->
                 if (entities.isNotEmpty()) {
@@ -64,15 +67,24 @@ class EventRepositoryImpl @Inject constructor(
                 featured = filter.featured
             )
 
-
             if (response.isSuccessful) {
                 response.body()?.let { apiResponse ->
-
                     apiResponse.events.forEachIndexed { index, eventDto ->
                     }
 
                     try {
                         val domainResponse = apiResponse.toDomain()
+                        val newEvents = domainResponse.events
+
+                        if (!newEventsTracker.isFirstTime()) {
+                            val unseenEvents = newEventsTracker.findNewEvents(newEvents)
+                            if (unseenEvents.isNotEmpty()) {
+                                notificationManager.showNewEventsNotification(unseenEvents)
+                            }
+                        }
+
+                        newEventsTracker.markEventsAsSeen(newEvents)
+
                         domainResponse.events.forEachIndexed { index, event ->
                         }
 
@@ -104,7 +116,6 @@ class EventRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
 
         try {
-
             eventDao.getUpcomingEvents().collect { entities ->
                 if (entities.isNotEmpty()) {
                     val events = entities.map { entity -> entity.toDomain() }
@@ -120,10 +131,8 @@ class EventRepositoryImpl @Inject constructor(
                 startDate = currentDate
             )
 
-
             if (response.isSuccessful) {
                 response.body()?.let { apiResponse ->
-
                     apiResponse.events.forEachIndexed { index, eventDto ->
                     }
 
@@ -153,7 +162,6 @@ class EventRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
 
         try {
-
             val cachedEntities = eventDao.getFeaturedEvents().first()
 
             if (cachedEntities.isNotEmpty()) {
@@ -164,10 +172,8 @@ class EventRepositoryImpl @Inject constructor(
 
             val response = wordPressApi.getFeaturedEvents()
 
-
             if (response.isSuccessful) {
                 response.body()?.let { apiResponse ->
-
                     apiResponse.events.forEachIndexed { index, eventDto ->
                     }
 
@@ -208,7 +214,6 @@ class EventRepositoryImpl @Inject constructor(
 
     override suspend fun getEventById(eventId: String): Resource<EventDetail> {
         return try {
-
             val cachedEvent = eventDao.getEventById(eventId)
             if (cachedEvent != null) {
                 val event = cachedEvent.toDomain()
@@ -272,7 +277,6 @@ class EventRepositoryImpl @Inject constructor(
 
     override suspend fun searchEvents(query: String, page: Int): Resource<List<Event>> {
         return try {
-            Log.d(TAG, "🔍 searchEvents: '$query', page=$page")
 
             val response = wordPressApi.searchEvents(
                 searchQuery = query,
@@ -282,7 +286,6 @@ class EventRepositoryImpl @Inject constructor(
 
             if (response.isSuccessful) {
                 response.body()?.let { apiResponse ->
-
                     val events = apiResponse.events.map { eventDto -> eventDto.toDomain() }
                     val entities = events.map { event -> event.toEntity() }
                     eventDao.insertEvents(entities)
@@ -300,7 +303,6 @@ class EventRepositoryImpl @Inject constructor(
 
     override suspend fun refreshEvents(): Resource<Unit> {
         return try {
-
             eventDao.deleteOldEvents(LocalDateTime.now().minusDays(1))
 
             val response = wordPressApi.getUpcomingEvents(
@@ -309,14 +311,21 @@ class EventRepositoryImpl @Inject constructor(
                 startDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
             )
 
-
             if (response.isSuccessful) {
                 response.body()?.let { apiResponse ->
-
                     val events = apiResponse.events.map { eventDto -> eventDto.toDomain() }
+
+                    if (!newEventsTracker.isFirstTime()) {
+                        val unseenEvents = newEventsTracker.findNewEvents(events)
+                        if (unseenEvents.isNotEmpty()) {
+                            notificationManager.showNewEventsNotification(unseenEvents)
+                        }
+                    }
+
+                    newEventsTracker.markEventsAsSeen(events)
+
                     val entities = events.map { event -> event.toEntity() }
                     eventDao.insertEvents(entities)
-
                 }
                 Resource.Success(Unit)
             } else {

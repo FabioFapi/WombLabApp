@@ -1,3 +1,38 @@
 <resources>
     <string name="app_name">WombLab</string>
+
+        <!-- Notifications -->
+        <string name="notification_channel_reminders">Promemoria Eventi</string>
+        <string name="notification_channel_new_events">Nuovi Eventi</string>
+        <string name="notification_channel_reminders_desc">Promemoria per eventi salvati nei preferiti</string>
+        <string name="notification_channel_new_events_desc">Notifiche quando vengono pubblicati nuovi eventi</string>
+
+        <!-- Notification Messages -->
+        <string name="notification_new_event_title">🆕 Nuovo evento disponibile</string>
+        <string name="notification_new_events_title">🆕 Nuovi eventi disponibili</string>
+        <string name="notification_reminder_24h">📅 Evento domani</string>
+        <string name="notification_reminder_1h">⏰ Evento tra 1 ora</string>
+        <string name="notification_reminder_15m">🔔 Evento tra 15 minuti</string>
+        <string name="notification_favorite_added">⭐ Evento salvato</string>
+        <string name="notification_favorite_removed">💔 Evento rimosso</string>
+
+        <!-- Notification Screen -->
+        <string name="notifications_title">Notifiche</string>
+        <string name="notifications_empty_title">Nessuna notifica</string>
+        <string name="notifications_empty_message">Le tue notifiche appariranno qui</string>
+        <string name="notifications_mark_all_read">Segna tutto come letto</string>
+        <string name="notifications_clear_old">Elimina vecchie notifiche</string>
+
+        <!-- Time formatting -->
+        <string name="time_now">Ora</string>
+        <string name="time_minutes_ago">%dm</string>
+        <string name="time_hours_ago">%dh</string>
+        <string name="time_days_ago">%dg</string>
+
+        <!-- Date groups -->
+        <string name="date_today">Oggi</string>
+        <string name="date_yesterday">Ieri</string>
+        <string name="date_this_week">Questa settimana</string>
+        <string name="date_this_month">Questo mese</string>
+        <string name="date_older">Più vecchie</string>
 </resources>

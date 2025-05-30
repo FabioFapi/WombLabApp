@@ -141,6 +141,8 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.14")
 
+    implementation("androidx.work:work-runtime-ktx:2.10.1")
+
 }
 
 //kapt {

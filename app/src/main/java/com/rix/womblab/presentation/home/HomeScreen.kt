@@ -36,6 +36,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun HomeScreen(
     onEventClick: (String) -> Unit = {},
+    onNavigateToNotifications: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -77,8 +78,8 @@ fun HomeScreen(
                     }
                 },
                 isSearchVisible = isSearchVisible,
-                hasNotifications = false,
-                onNotificationClick = { }
+                hasNotifications = uiState.unreadNotificationsCount > 0,
+                onNotificationClick = onNavigateToNotifications
             )
         }
     ) { paddingValues ->

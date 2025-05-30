@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rix.womblab.domain.model.Event
+import com.rix.womblab.domain.repository.NotificationRepository
 import com.rix.womblab.domain.usecase.auth.GetCurrentUserUseCase
 import com.rix.womblab.domain.usecase.events.GetUpcomingEventsUseCase
 import com.rix.womblab.domain.usecase.events.GetFeaturedEventsUseCase
@@ -11,6 +12,7 @@ import com.rix.womblab.domain.usecase.events.RefreshEventsUseCase
 import com.rix.womblab.domain.usecase.events.SearchEventsUseCase
 import com.rix.womblab.domain.usecase.favorites.GetFavoritesUseCase
 import com.rix.womblab.domain.usecase.favorites.ToggleFavoriteUseCase
+import com.rix.womblab.utils.EventReminderScheduler
 import com.rix.womblab.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -29,7 +31,8 @@ data class HomeUiState(
     val searchQuery: String = "",
     val userId: String? = null,
     val currentPage: Int = 1,
-    val hasMoreEvents: Boolean = true
+    val hasMoreEvents: Boolean = true,
+    val unreadNotificationsCount: Int = 0
 )
 
 @HiltViewModel
@@ -40,8 +43,14 @@ class HomeViewModel @Inject constructor(
     private val refreshEventsUseCase: RefreshEventsUseCase,
     private val searchEventsUseCase: SearchEventsUseCase,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
-    private val getCurrentUserUseCase: GetCurrentUserUseCase
+    private val getCurrentUserUseCase: GetCurrentUserUseCase,
+    private val eventReminderScheduler: EventReminderScheduler,
+    private val notificationRepository: NotificationRepository
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "HomeViewModel"
+    }
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -49,6 +58,7 @@ class HomeViewModel @Inject constructor(
     init {
         setupUser()
         loadInitialData()
+        loadUnreadNotificationsCount()
     }
 
     private fun setupUser() {
@@ -71,9 +81,22 @@ class HomeViewModel @Inject constructor(
 
             try {
                 launch { loadFeaturedEvents() }
-
                 launch { loadUpcomingEvents() }
             } catch (e: Exception) {
+            }
+        }
+    }
+
+    private fun loadUnreadNotificationsCount() {
+        viewModelScope.launch {
+            try {
+                notificationRepository.getUnreadCount().collect { count ->
+                    _uiState.value = _uiState.value.copy(
+                        unreadNotificationsCount = count
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(unreadNotificationsCount = 0)
             }
         }
     }
@@ -218,7 +241,17 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = toggleFavoriteUseCase(eventId, userId)) {
                 is Resource.Success -> {
-                    updateEventFavoriteStatus(eventId, result.data ?: false)
+                    val isFavorite = result.data ?: false
+                    updateEventFavoriteStatus(eventId, isFavorite)
+
+                    if (isFavorite) {
+                        val event = findEventById(eventId)
+                        event?.let {
+                            eventReminderScheduler.scheduleEventReminders(it)
+                        }
+                    } else {
+                        eventReminderScheduler.cancelEventReminders(eventId)
+                    }
 
                     loadFavoriteEvents(userId)
                 }
@@ -231,6 +264,13 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private fun findEventById(eventId: String): Event? {
+        return _uiState.value.upcomingEvents.find { it.id == eventId }
+            ?: _uiState.value.featuredEvents.find { it.id == eventId }
+            ?: _uiState.value.favoriteEvents.find { it.id == eventId }
+            ?: _uiState.value.searchResults.find { it.id == eventId }
     }
 
     private fun updateEventFavoriteStatus(eventId: String, isFavorite: Boolean) {
@@ -263,5 +303,21 @@ class HomeViewModel @Inject constructor(
             searchResults = emptyList(),
             isSearching = false
         )
+    }
+
+    fun refreshNotificationCount() {
+        Log.d(TAG, "🔄 Refresh manuale conteggio notifiche")
+        loadUnreadNotificationsCount()
+    }
+
+    fun getNotificationStats() {
+        viewModelScope.launch {
+            try {
+                val allNotifications = notificationRepository.getAllNotifications()
+                allNotifications.collect { notifications ->
+                }
+            } catch (e: Exception) {
+            }
+        }
     }
 }
