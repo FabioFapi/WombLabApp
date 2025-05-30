@@ -88,7 +88,7 @@ app/
 
 1. **Clona il repository**
 ```bash
-git clone https://github.com/tuousername/womblab.git
+git clone https://github.com/FabioFapi/WombLabApp
 cd womblab
 ```
 
@@ -342,9 +342,9 @@ Soluzione: Incrementa DATABASE_VERSION e aggiungi migration appropriata
 ## 📞 Supporto
 
 - 📧 **Email**: recchiappmobile@gmail.com
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/tuousername/womblab/issues)
-- 💬 **Discussioni**: [GitHub Discussions](https://github.com/tuousername/womblab/discussions)
-- 📖 **Documentation**: [Wiki](https://github.com/tuousername/womblab/wiki)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/FabioFapi/WombLabApp/issues)
+- 💬 **Discussioni**: [GitHub Discussions](https://github.com/FabioFapi/WombLabApp/discussions)
+- 📖 **Documentation**: [Wiki](https://github.com/FabioFapi/WombLabApp/wiki)
 
 ---
 
