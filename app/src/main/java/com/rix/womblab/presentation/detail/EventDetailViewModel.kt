@@ -41,7 +41,14 @@ class EventDetailViewModel @Inject constructor(
 
     init {
         setupUser()
-        loadEventDetail()
+        if (eventId.isNotBlank()) {
+            loadEventDetail()
+        } else {
+            _uiState.value = _uiState.value.copy(
+                error = "ID evento non valido",
+                isLoading = false
+            )
+        }
     }
 
     private fun setupUser() {
@@ -51,35 +58,44 @@ class EventDetailViewModel @Inject constructor(
                     userId = firebaseUser?.uid
                 )
 
-                firebaseUser?.uid?.let { userId ->
-                    checkIfFavorite(userId)
+                // Quando otteniamo l'userId e abbiamo già caricato l'evento,
+                // controlliamo se è nei preferiti
+                if (firebaseUser?.uid != null && _uiState.value.event != null) {
+                    checkIfFavorite(firebaseUser.uid)
                 }
             }
         }
     }
 
     private fun loadEventDetail() {
-        if (eventId.isBlank()) {
-            _uiState.value = _uiState.value.copy(
-                error = "ID evento non valido",
-                isLoading = false
-            )
-            return
-        }
-
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
             when (val result = getEventDetailUseCase(eventId)) {
                 is Resource.Success -> {
-                    _uiState.value = _uiState.value.copy(
-                        event = result.data?.event,
-                        eventDetail = result.data,
-                        isLoading = false
-                    )
+                    result.data?.let { eventDetail ->
+                        // Se l'evento dal repository ha già info sui preferiti, usiamola
+                        val isFavorite = eventDetail.event.isFavorite
 
-                    _uiState.value.userId?.let { userId ->
-                        checkIfFavorite(userId)
+                        _uiState.value = _uiState.value.copy(
+                            event = eventDetail.event,
+                            eventDetail = eventDetail,
+                            isFavorite = isFavorite,
+                            isLoading = false
+                        )
+
+                        // Se abbiamo l'userId ma isFavorite è false, facciamo un controllo
+                        // per essere sicuri (nel caso il repository non abbia ancora l'info aggiornata)
+                        _uiState.value.userId?.let { userId ->
+                            if (!isFavorite) {
+                                checkIfFavorite(userId)
+                            }
+                        }
+                    } ?: run {
+                        _uiState.value = _uiState.value.copy(
+                            error = "Evento non trovato",
+                            isLoading = false
+                        )
                     }
                 }
 
@@ -91,6 +107,7 @@ class EventDetailViewModel @Inject constructor(
                 }
 
                 is Resource.Loading -> {
+                    // Non fare nulla durante il caricamento
                 }
             }
         }
@@ -98,8 +115,22 @@ class EventDetailViewModel @Inject constructor(
 
     private fun checkIfFavorite(userId: String) {
         viewModelScope.launch {
-            val isFav = isFavoriteUseCase(eventId, userId)
-            _uiState.value = _uiState.value.copy(isFavorite = isFav)
+            try {
+                val isFav = isFavoriteUseCase(eventId, userId)
+                _uiState.value = _uiState.value.copy(isFavorite = isFav)
+
+                // Aggiorna anche l'evento se presente
+                _uiState.value.event?.let { event ->
+                    if (event.isFavorite != isFav) {
+                        _uiState.value = _uiState.value.copy(
+                            event = event.copy(isFavorite = isFav)
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                // Log dell'errore ma non mostrare all'utente
+                android.util.Log.e("EventDetail", "Errore controllo preferiti", e)
+            }
         }
     }
 
@@ -111,9 +142,13 @@ class EventDetailViewModel @Inject constructor(
 
             when (val result = toggleFavoriteUseCase(eventId, userId)) {
                 is Resource.Success -> {
+                    val newFavoriteState = result.data ?: false
+
+                    // Aggiorna sia isFavorite che l'evento stesso
                     _uiState.value = _uiState.value.copy(
-                        isFavorite = result.data ?: false,
-                        isTogglingFavorite = false
+                        isFavorite = newFavoriteState,
+                        isTogglingFavorite = false,
+                        event = _uiState.value.event?.copy(isFavorite = newFavoriteState)
                     )
                 }
 
@@ -125,6 +160,7 @@ class EventDetailViewModel @Inject constructor(
                 }
 
                 is Resource.Loading -> {
+                    // Non fare nulla durante il caricamento
                 }
             }
         }

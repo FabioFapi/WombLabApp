@@ -40,4 +40,24 @@ interface EventDao {
 
     @Query("DELETE FROM events")
     suspend fun clearAllEvents()
+
+    @Query("SELECT * FROM events WHERE id IN (:eventIds) ORDER BY startDate ASC")
+    suspend fun getEventsByIds(eventIds: List<String>): List<EventEntity>
+
+    @Query("SELECT * FROM events WHERE id IN (:eventIds) ORDER BY startDate ASC")
+    fun getEventsByIdsFlow(eventIds: List<String>): Flow<List<EventEntity>>
+
+    @Query("SELECT id FROM events WHERE id IN (:eventIds)")
+    suspend fun getExistingEventIds(eventIds: List<String>): List<String>
+
+    @Query("SELECT id FROM events")
+    suspend fun getAllEventIds(): List<String>
+
+    @Query("""
+        SELECT e.* FROM events e
+        INNER JOIN favorites f ON e.id = f.eventId
+        WHERE f.userId = :userId
+        ORDER BY e.startDate ASC
+    """)
+    fun getFavoriteEventsByUser(userId: String): Flow<List<EventEntity>>
 }

@@ -32,7 +32,8 @@ data class HomeUiState(
     val userId: String? = null,
     val currentPage: Int = 1,
     val hasMoreEvents: Boolean = true,
-    val unreadNotificationsCount: Int = 0
+    val unreadNotificationsCount: Int = 0,
+    val favoriteIds: Set<String> = emptySet()
 )
 
 @HiltViewModel
@@ -106,8 +107,11 @@ class HomeViewModel @Inject constructor(
             getFeaturedEventsUseCase().collect { resource ->
                 when (resource) {
                     is Resource.Success -> {
+                        val events = resource.data ?: emptyList()
+                        val eventsWithFavorites = updateEventsWithFavoriteStatus(events)
+
                         _uiState.value = _uiState.value.copy(
-                            featuredEvents = resource.data ?: emptyList(),
+                            featuredEvents = eventsWithFavorites,
                             isLoading = false
                         )
                     }
@@ -130,12 +134,13 @@ class HomeViewModel @Inject constructor(
                 when (resource) {
                     is Resource.Success -> {
                         val newEvents = resource.data ?: emptyList()
+                        val eventsWithFavorites = updateEventsWithFavoriteStatus(newEvents)
 
                         _uiState.value = _uiState.value.copy(
                             upcomingEvents = if (page == 1) {
-                                newEvents
+                                eventsWithFavorites
                             } else {
-                                _uiState.value.upcomingEvents + newEvents
+                                _uiState.value.upcomingEvents + eventsWithFavorites
                             },
                             isLoading = false,
                             hasMoreEvents = newEvents.size >= 15,
@@ -163,9 +168,15 @@ class HomeViewModel @Inject constructor(
             getFavoritesUseCase(userId).collect { resource ->
                 when (resource) {
                     is Resource.Success -> {
+                        val favoriteEvents = resource.data ?: emptyList()
+                        val favoriteIds = favoriteEvents.map { it.id }.toSet()
+
                         _uiState.value = _uiState.value.copy(
-                            favoriteEvents = resource.data ?: emptyList()
+                            favoriteEvents = favoriteEvents.map { it.copy(isFavorite = true) },
+                            favoriteIds = favoriteIds
                         )
+
+                        updateAllEventsWithFavorites()
                     }
                     is Resource.Error -> {
                     }
@@ -176,14 +187,37 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun updateEventsWithFavoriteStatus(events: List<Event>): List<Event> {
+        val favoriteIds = _uiState.value.favoriteIds
+        return events.map { event ->
+            event.copy(isFavorite = favoriteIds.contains(event.id))
+        }
+    }
+
+    private fun updateAllEventsWithFavorites() {
+        val favoriteIds = _uiState.value.favoriteIds
+
+        _uiState.value = _uiState.value.copy(
+            featuredEvents = _uiState.value.featuredEvents.map { event ->
+                event.copy(isFavorite = favoriteIds.contains(event.id))
+            },
+            upcomingEvents = _uiState.value.upcomingEvents.map { event ->
+                event.copy(isFavorite = favoriteIds.contains(event.id))
+            },
+            searchResults = _uiState.value.searchResults.map { event ->
+                event.copy(isFavorite = favoriteIds.contains(event.id))
+            }
+        )
+    }
+
     fun onRefresh() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isRefreshing = true)
 
             when (val result = refreshEventsUseCase()) {
                 is Resource.Success -> {
-                    loadInitialData()
                     _uiState.value.userId?.let { loadFavoriteEvents(it) }
+                    loadInitialData()
                 }
                 is Resource.Error -> {
                     _uiState.value = _uiState.value.copy(
@@ -218,8 +252,11 @@ class HomeViewModel @Inject constructor(
 
             when (val result = searchEventsUseCase(query)) {
                 is Resource.Success -> {
+                    val searchResults = result.data ?: emptyList()
+                    val resultsWithFavorites = updateEventsWithFavoriteStatus(searchResults)
+
                     _uiState.value = _uiState.value.copy(
-                        searchResults = result.data ?: emptyList(),
+                        searchResults = resultsWithFavorites,
                         isSearching = false
                     )
                 }
@@ -242,6 +279,15 @@ class HomeViewModel @Inject constructor(
             when (val result = toggleFavoriteUseCase(eventId, userId)) {
                 is Resource.Success -> {
                     val isFavorite = result.data ?: false
+
+                    val updatedFavoriteIds = if (isFavorite) {
+                        _uiState.value.favoriteIds + eventId
+                    } else {
+                        _uiState.value.favoriteIds - eventId
+                    }
+
+                    _uiState.value = _uiState.value.copy(favoriteIds = updatedFavoriteIds)
+
                     updateEventFavoriteStatus(eventId, isFavorite)
 
                     if (isFavorite) {
@@ -283,6 +329,18 @@ class HomeViewModel @Inject constructor(
             },
             searchResults = _uiState.value.searchResults.map { event ->
                 if (event.id == eventId) event.copy(isFavorite = isFavorite) else event
+            },
+            favoriteEvents = if (isFavorite) {
+                val event = findEventById(eventId)
+                if (event != null && !_uiState.value.favoriteEvents.any { it.id == eventId }) {
+                    _uiState.value.favoriteEvents + event.copy(isFavorite = true)
+                } else {
+                    _uiState.value.favoriteEvents.map { e ->
+                        if (e.id == eventId) e.copy(isFavorite = true) else e
+                    }
+                }
+            } else {
+                _uiState.value.favoriteEvents.filter { it.id != eventId }
             }
         )
     }

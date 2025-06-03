@@ -1,6 +1,5 @@
 package com.rix.womblab.data.repository
 
-import android.util.Log
 import com.rix.womblab.data.local.dao.EventDao
 import com.rix.womblab.data.local.dao.FavoriteDao
 import com.rix.womblab.data.local.entities.FavoriteEntity
@@ -9,6 +8,7 @@ import com.rix.womblab.data.local.entities.toEntity
 import com.rix.womblab.data.remote.api.WordPressApi
 import com.rix.womblab.data.remote.dto.toDomain
 import com.rix.womblab.domain.model.*
+import com.rix.womblab.domain.repository.AuthRepository
 import com.rix.womblab.domain.repository.EventRepository
 import com.rix.womblab.utils.NewEventsTracker
 import com.rix.womblab.utils.Resource
@@ -27,6 +27,7 @@ class EventRepositoryImpl @Inject constructor(
     private val wordPressApi: WordPressApi,
     private val eventDao: EventDao,
     private val favoriteDao: FavoriteDao,
+    private val authRepository: AuthRepository,
     private val newEventsTracker: NewEventsTracker,
     private val notificationManager: WombLabNotificationManager
 ) : EventRepository {
@@ -35,14 +36,39 @@ class EventRepositoryImpl @Inject constructor(
         private const val TAG = "EventRepositoryImpl"
     }
 
+    private suspend fun enrichEventsWithFavorites(
+        events: List<Event>,
+        userId: String?
+    ): List<Event> {
+        if (userId == null) return events
+
+        return try {
+            val favoriteIds = favoriteDao.getUserFavoriteIds(userId).first().toSet()
+
+            events.map { event ->
+                event.copy(isFavorite = favoriteIds.contains(event.id))
+            }
+        } catch (e: Exception) {
+            events
+        }
+    }
+
+    private suspend fun getCurrentUserId(): String? {
+        return authRepository.getCurrentUser()?.uid
+    }
+
     override fun getEvents(filter: EventFilter): Flow<Resource<EventsResponse>> = flow {
         emit(Resource.Loading())
 
         try {
+            val userId = getCurrentUserId()
+
             val cachedEvents = eventDao.getAllEvents()
             cachedEvents.collect { entities ->
                 if (entities.isNotEmpty()) {
-                    val events = entities.map { entity -> entity.toDomain() }
+                    var events = entities.map { entity -> entity.toDomain() }
+                    events = enrichEventsWithFavorites(events, userId)
+
                     val response = EventsResponse(
                         events = events,
                         total = events.size,
@@ -69,12 +95,11 @@ class EventRepositoryImpl @Inject constructor(
 
             if (response.isSuccessful) {
                 response.body()?.let { apiResponse ->
-                    apiResponse.events.forEachIndexed { index, eventDto ->
-                    }
-
                     try {
                         val domainResponse = apiResponse.toDomain()
-                        val newEvents = domainResponse.events
+                        var newEvents = domainResponse.events
+
+                        newEvents = enrichEventsWithFavorites(newEvents, userId)
 
                         if (!newEventsTracker.isFirstTime()) {
                             val unseenEvents = newEventsTracker.findNewEvents(newEvents)
@@ -85,15 +110,12 @@ class EventRepositoryImpl @Inject constructor(
 
                         newEventsTracker.markEventsAsSeen(newEvents)
 
-                        domainResponse.events.forEachIndexed { index, event ->
-                        }
-
                         try {
-                            val entities = domainResponse.events.map { event -> event.toEntity() }
-
+                            val entities = newEvents.map { event -> event.toEntity() }
                             eventDao.insertEvents(entities)
 
-                            emit(Resource.Success(domainResponse))
+                            val enrichedResponse = domainResponse.copy(events = newEvents)
+                            emit(Resource.Success(enrichedResponse))
                         } catch (e: Exception) {
                             emit(Resource.Error("Errore salvataggio: ${e.message}"))
                         }
@@ -116,9 +138,12 @@ class EventRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
 
         try {
+            val userId = getCurrentUserId()
+
             eventDao.getUpcomingEvents().collect { entities ->
                 if (entities.isNotEmpty()) {
-                    val events = entities.map { entity -> entity.toDomain() }
+                    var events = entities.map { entity -> entity.toDomain() }
+                    events = enrichEventsWithFavorites(events, userId)
                     emit(Resource.Success(events))
                 }
             }
@@ -133,11 +158,10 @@ class EventRepositoryImpl @Inject constructor(
 
             if (response.isSuccessful) {
                 response.body()?.let { apiResponse ->
-                    apiResponse.events.forEachIndexed { index, eventDto ->
-                    }
-
                     try {
-                        val events = apiResponse.events.map { eventDto -> eventDto.toDomain() }
+                        var events = apiResponse.events.map { eventDto -> eventDto.toDomain() }
+
+                        events = enrichEventsWithFavorites(events, userId)
 
                         val entities = events.map { event -> event.toEntity() }
                         eventDao.insertEvents(entities)
@@ -162,10 +186,13 @@ class EventRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
 
         try {
+            val userId = getCurrentUserId()
+
             val cachedEntities = eventDao.getFeaturedEvents().first()
 
             if (cachedEntities.isNotEmpty()) {
-                val events = cachedEntities.map { entity -> entity.toDomain() }
+                var events = cachedEntities.map { entity -> entity.toDomain() }
+                events = enrichEventsWithFavorites(events, userId)
                 emit(Resource.Success(events))
                 return@flow
             }
@@ -174,10 +201,10 @@ class EventRepositoryImpl @Inject constructor(
 
             if (response.isSuccessful) {
                 response.body()?.let { apiResponse ->
-                    apiResponse.events.forEachIndexed { index, eventDto ->
-                    }
+                    var events = apiResponse.events.map { eventDto -> eventDto.toDomain() }
 
-                    val events = apiResponse.events.map { eventDto -> eventDto.toDomain() }
+                    events = enrichEventsWithFavorites(events, userId)
+
                     val entities = events.map { event -> event.toEntity() }
                     eventDao.insertEvents(entities)
 
@@ -214,9 +241,16 @@ class EventRepositoryImpl @Inject constructor(
 
     override suspend fun getEventById(eventId: String): Resource<EventDetail> {
         return try {
+            val userId = getCurrentUserId()
+
             val cachedEvent = eventDao.getEventById(eventId)
             if (cachedEvent != null) {
-                val event = cachedEvent.toDomain()
+                var event = cachedEvent.toDomain()
+
+                if (userId != null) {
+                    event = event.copy(isFavorite = isFavorite(eventId, userId))
+                }
+
                 return Resource.Success(EventDetail(event = event, customFields = null))
             }
 
@@ -224,7 +258,11 @@ class EventRepositoryImpl @Inject constructor(
 
             if (response.isSuccessful) {
                 response.body()?.let { eventDto ->
-                    val event = eventDto.toDomain()
+                    var event = eventDto.toDomain()
+
+                    if (userId != null) {
+                        event = event.copy(isFavorite = isFavorite(eventId, userId))
+                    }
 
                     eventDao.insertEvent(event.toEntity())
 
@@ -277,6 +315,7 @@ class EventRepositoryImpl @Inject constructor(
 
     override suspend fun searchEvents(query: String, page: Int): Resource<List<Event>> {
         return try {
+            val userId = getCurrentUserId()
 
             val response = wordPressApi.searchEvents(
                 searchQuery = query,
@@ -286,7 +325,11 @@ class EventRepositoryImpl @Inject constructor(
 
             if (response.isSuccessful) {
                 response.body()?.let { apiResponse ->
-                    val events = apiResponse.events.map { eventDto -> eventDto.toDomain() }
+                    var events = apiResponse.events.map { eventDto -> eventDto.toDomain() }
+
+                    // Arricchisci con info preferiti
+                    events = enrichEventsWithFavorites(events, userId)
+
                     val entities = events.map { event -> event.toEntity() }
                     eventDao.insertEvents(entities)
 
@@ -303,6 +346,8 @@ class EventRepositoryImpl @Inject constructor(
 
     override suspend fun refreshEvents(): Resource<Unit> {
         return try {
+            val userId = getCurrentUserId()
+
             eventDao.deleteOldEvents(LocalDateTime.now().minusDays(1))
 
             val response = wordPressApi.getUpcomingEvents(
@@ -313,7 +358,10 @@ class EventRepositoryImpl @Inject constructor(
 
             if (response.isSuccessful) {
                 response.body()?.let { apiResponse ->
-                    val events = apiResponse.events.map { eventDto -> eventDto.toDomain() }
+                    var events = apiResponse.events.map { eventDto -> eventDto.toDomain() }
+
+                    // Arricchisci con info preferiti
+                    events = enrichEventsWithFavorites(events, userId)
 
                     if (!newEventsTracker.isFirstTime()) {
                         val unseenEvents = newEventsTracker.findNewEvents(events)

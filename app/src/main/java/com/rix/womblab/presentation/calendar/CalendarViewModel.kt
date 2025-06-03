@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.rix.womblab.domain.model.Event
 import com.rix.womblab.domain.usecase.events.GetUpcomingEventsUseCase
 import com.rix.womblab.domain.usecase.favorites.ToggleFavoriteUseCase
+import com.rix.womblab.domain.usecase.favorites.GetFavoritesUseCase
 import com.rix.womblab.domain.usecase.auth.GetCurrentUserUseCase
 import com.rix.womblab.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,13 +23,15 @@ data class CalendarUiState(
     val currentMonth: YearMonth = YearMonth.now(),
     val eventsForSelectedDate: List<Event> = emptyList(),
     val error: String? = null,
-    val userId: String? = null
+    val userId: String? = null,
+    val favoriteIds: Set<String> = emptySet()
 )
 
 @HiltViewModel
 class CalendarViewModel @Inject constructor(
     private val getUpcomingEventsUseCase: GetUpcomingEventsUseCase,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
+    private val getFavoritesUseCase: GetFavoritesUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase
 ) : ViewModel() {
 
@@ -63,12 +66,71 @@ class CalendarViewModel @Inject constructor(
                     _uiState.value = _uiState.value.copy(
                         userId = firebaseUser?.uid
                     )
+                    firebaseUser?.uid?.let { userId ->
+                        loadFavorites(userId)
+                    }
                 }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     error = "Errore configurazione utente: ${e.message}"
                 )
             }
+        }
+    }
+
+    private fun loadFavorites(userId: String) {
+        viewModelScope.launch {
+            getFavoritesUseCase(userId).collect { resource ->
+                when (resource) {
+                    is Resource.Success -> {
+                        val favoriteIds = resource.data?.map { it.id }?.toSet() ?: emptySet()
+                        _uiState.value = _uiState.value.copy(favoriteIds = favoriteIds)
+
+                        updateEventsWithFavorites()
+                    }
+                    is Resource.Error -> {
+                    }
+                    is Resource.Loading -> {
+                    }
+                }
+            }
+        }
+    }
+
+    private fun updateEventsWithFavorites() {
+        val favoriteIds = _uiState.value.favoriteIds
+
+        val updatedEvents = _uiState.value.events.map { event ->
+            event.copy(isFavorite = favoriteIds.contains(event.id))
+        }
+
+        val updatedEventsForSelectedDate = _uiState.value.eventsForSelectedDate.map { event ->
+            event.copy(isFavorite = favoriteIds.contains(event.id))
+        }
+
+        _uiState.value = _uiState.value.copy(
+            events = updatedEvents,
+            eventsForSelectedDate = updatedEventsForSelectedDate
+        )
+
+        if (cacheBuilt) {
+            rebuildCacheWithUpdatedEvents(updatedEvents)
+        }
+    }
+
+    private fun rebuildCacheWithUpdatedEvents(events: List<Event>) {
+        eventsByDateCache.clear()
+
+        val eventsByDate = mutableMapOf<LocalDate, MutableList<Event>>()
+
+        events.forEach { event ->
+            parsedDatesCache[event.id]?.let { parsedDate ->
+                eventsByDate.getOrPut(parsedDate) { mutableListOf() }.add(event)
+            }
+        }
+
+        eventsByDate.forEach { (date, eventList) ->
+            eventsByDateCache[date] = eventList.toList()
         }
     }
 
@@ -82,12 +144,17 @@ class CalendarViewModel @Inject constructor(
                         is Resource.Success -> {
                             val events = resource.data ?: emptyList()
 
-                            buildCacheSafe(events)
+                            val favoriteIds = _uiState.value.favoriteIds
+                            val eventsWithFavorites = events.map { event ->
+                                event.copy(isFavorite = favoriteIds.contains(event.id))
+                            }
 
-                            val eventsForSelectedDate = getEventsForDateSafe(_uiState.value.selectedDate, events)
+                            buildCacheSafe(eventsWithFavorites)
+
+                            val eventsForSelectedDate = getEventsForDateSafe(_uiState.value.selectedDate, eventsWithFavorites)
 
                             _uiState.value = _uiState.value.copy(
-                                events = events,
+                                events = eventsWithFavorites,
                                 eventsForSelectedDate = eventsForSelectedDate,
                                 isLoading = false
                             )
@@ -194,6 +261,15 @@ class CalendarViewModel @Inject constructor(
                 when (val result = toggleFavoriteUseCase(eventId, userId)) {
                     is Resource.Success -> {
                         val isFavorite = result.data ?: false
+
+                        val updatedFavoriteIds = if (isFavorite) {
+                            _uiState.value.favoriteIds + eventId
+                        } else {
+                            _uiState.value.favoriteIds - eventId
+                        }
+
+                        _uiState.value = _uiState.value.copy(favoriteIds = updatedFavoriteIds)
+
                         updateEventFavoriteStatusSafe(eventId, isFavorite)
                     }
                     is Resource.Error -> {
@@ -354,6 +430,10 @@ class CalendarViewModel @Inject constructor(
         cacheBuilt = false
         parsedDatesCache.clear()
         eventsByDateCache.clear()
+
+        _uiState.value.userId?.let { userId ->
+            loadFavorites(userId)
+        }
         loadEvents()
     }
 
