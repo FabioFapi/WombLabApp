@@ -50,7 +50,6 @@ object DescriptionParser {
         } catch (e: Exception) {
         }
 
-        Log.d(TAG, "✅ Risultato parsing - Data: $eventDate, Ora: $eventTime, Link: $eventLink")
         return ParsedEventInfo(
             cleanDescription = cleanDesc.trim(),
             eventDate = eventDate,

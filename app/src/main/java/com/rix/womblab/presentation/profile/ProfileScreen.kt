@@ -241,12 +241,6 @@ private fun ProfileContent(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        ProfileInfoSection(
-            userProfile = uiState.userProfile
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
         ActionsSection(
             onLogoutClick = onShowLogoutDialog,
             isLoggingOut = uiState.isLoggingOut
@@ -264,7 +258,7 @@ private fun ProfileHeader(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            .padding (12.dp),
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         colors = CardDefaults.cardColors(
@@ -272,7 +266,9 @@ private fun ProfileHeader(
         )
     ) {
         Column(
-            modifier = Modifier.padding(24.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(

@@ -14,10 +14,47 @@
       },
       "oauth_client": [
         {
-          "client_id": "327632805229-bjtjffifln1b5umvibcbb25d64rup02h.apps.googleusercontent.com",
+          "client_id": "327632805229-4t8s1tn4mr7mup3p8d0gcacjovra0vpv.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.rix.womblab",
+            "certificate_hash": "4bdebc9a5cf11abb449ce97344a12479a6046061"
+          }
+        },
+        {
+          "client_id": "327632805229-8jmrm0qn9mgvqganr31p1blih1cdpp9t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3hSVSk5GXXtXnDSLhd-Q5DaDYQs8GHi8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "327632805229-8jmrm0qn9mgvqganr31p1blih1cdpp9t.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:327632805229:android:63735f237adcebdc0dce64",
+        "android_client_info": {
+          "package_name": "com.rix.womblab.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "327632805229-kjejlpclmn8p7229a0bja15jfuj92quj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rix.womblab.debug",
             "certificate_hash": "7b4de58dff1fc85f0a0afea47e1eaf6cf9827947"
           }
         },

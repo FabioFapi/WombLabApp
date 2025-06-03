@@ -522,7 +522,7 @@ private fun LocationSection(venue: EventVenue) {
             }
 
             Text(
-                text = "${venue.city}, ${venue.country}",
+                text = venue.city,
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
