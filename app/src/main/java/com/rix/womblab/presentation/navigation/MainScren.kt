@@ -12,6 +12,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -308,7 +309,7 @@ private fun ProfessionalNavigationBar(
                     Box {
                         Icon(
                             imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
-                            contentDescription = item.label,
+                            contentDescription = item.labelResId.toString(),
                             modifier = Modifier
                                 .graphicsLayer {
                                     scaleX = iconScale
@@ -346,7 +347,7 @@ private fun ProfessionalNavigationBar(
                         )
                     ) {
                         Text(
-                            text = item.label,
+                            text = stringResource(id = item.labelResId),
                             style = MaterialTheme.typography.labelSmall
                         )
                     }

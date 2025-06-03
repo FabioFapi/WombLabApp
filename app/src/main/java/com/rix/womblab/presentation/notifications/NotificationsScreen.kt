@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.rix.womblab.R
 import com.rix.womblab.domain.model.Notification
 import com.rix.womblab.domain.model.NotificationType
 import kotlinx.coroutines.delay
@@ -47,7 +49,7 @@ fun NotificationsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Notifiche",
+                            text = stringResource(id = R.string.notifications_title),
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -62,7 +64,7 @@ fun NotificationsScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Indietro"
+                            contentDescription = stringResource(id = R.string.back)
                         )
                     }
                 },
@@ -73,7 +75,7 @@ fun NotificationsScreen(
                         ) {
                             Icon(
                                 Icons.Default.DoneAll,
-                                contentDescription = "Segna tutto come letto",
+                                contentDescription = stringResource(id = R.string.notifications_mark_all_read),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -81,7 +83,7 @@ fun NotificationsScreen(
 
                     var showMenu by remember { mutableStateOf(false) }
                     IconButton(onClick = { showMenu = true }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "Opzioni")
+                        Icon(Icons.Default.MoreVert, contentDescription = stringResource(id = R.string.options))
                     }
 
                     DropdownMenu(
@@ -89,7 +91,7 @@ fun NotificationsScreen(
                         onDismissRequest = { showMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Elimina vecchie notifiche") },
+                            text = { stringResource(id = R.string.notifications_clear_old) },
                             onClick = {
                                 viewModel.clearOldNotifications()
                                 showMenu = false
@@ -183,24 +185,24 @@ private fun AnimatedLoadingState() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            val infiniteTransition = rememberInfiniteTransition(label = "loading")
+            val infiniteTransition = rememberInfiniteTransition(label = stringResource(id = R.string.loading))
             val rotation by infiniteTransition.animateFloat(
                 initialValue = 0f,
                 targetValue = 360f,
                 animationSpec = infiniteRepeatable(
                     animation = tween(2000, easing = LinearEasing)
                 ),
-                label = "rotation"
+                label = stringResource(id = R.string.notifications_animated_rotation)
             )
 
             Text(
-                text = "🔔",
+                text = stringResource(id = R.string.notifications_emoji),
                 fontSize = 48.sp,
                 modifier = Modifier.graphicsLayer { rotationZ = rotation }
             )
 
             Text(
-                text = "Caricamento notifiche...",
+                text = stringResource(id = R.string.notifications_loading),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
@@ -245,12 +247,12 @@ private fun AnimatedEmptyNotificationsState() {
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(
-                        text = "🔔",
+                        text = stringResource(id = R.string.notifications_emoji),
                         fontSize = 64.sp
                     )
 
                     Text(
-                        text = "Nessuna notifica",
+                        text = stringResource(id = R.string.notifications_nothing),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -258,8 +260,7 @@ private fun AnimatedEmptyNotificationsState() {
                     )
 
                     Text(
-                        text = "Le tue notifiche appariranno qui quando ci saranno aggiornamenti sui tuoi eventi",
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = stringResource(id = R.string.notifications_no_new_events),                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
@@ -369,7 +370,7 @@ private fun AnimatedNotificationItem(
             ) {
                 if (!notification.isRead) {
                     DropdownMenuItem(
-                        text = { Text("Segna come letta") },
+                        text = { stringResource(id = R.string.notifications_dropmenu) },
                         onClick = {
                             onMarkAsRead()
                             showOptions = false
@@ -381,7 +382,7 @@ private fun AnimatedNotificationItem(
                 }
 
                 DropdownMenuItem(
-                    text = { Text("Elimina") },
+                    text = { stringResource(id = R.string.delete) },
                     onClick = {
                         onDelete()
                         showOptions = false
@@ -494,20 +495,18 @@ private fun NotificationCard(
                 }
             }
 
-            // Actions button
             IconButton(
                 onClick = onShowOptions,
                 modifier = Modifier.size(24.dp)
             ) {
                 Icon(
                     Icons.Default.MoreVert,
-                    contentDescription = "Opzioni",
+                    contentDescription = stringResource(id = R.string.options),
                     tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     modifier = Modifier.size(16.dp)
                 )
             }
 
-            // Unread indicator
             if (!notification.isRead) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Box(

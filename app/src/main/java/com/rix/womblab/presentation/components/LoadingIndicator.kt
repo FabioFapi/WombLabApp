@@ -8,15 +8,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rix.womblab.presentation.theme.WombLabTheme
+import com.rix.womblab.R
 
 @Composable
 fun LoadingIndicator(
-    message: String = "Caricamento in corso...",
+    message: String = stringResource(id = R.string.loading_indicator_message),
     modifier: Modifier = Modifier,
     showMessage: Boolean = true
 ) {
@@ -35,7 +37,7 @@ fun LoadingIndicator(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "🔬",
+            text = stringResource(id = R.string.home_emoji),
             fontSize = 32.sp,
             modifier = Modifier.rotate(rotation)
         )

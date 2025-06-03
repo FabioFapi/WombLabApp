@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,6 +38,7 @@ import com.rix.womblab.utils.DescriptionParser
 import com.rix.womblab.utils.ParsedEventInfo
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import com.rix.womblab.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,12 +52,12 @@ fun EventDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Dettaglio Evento") },
+                title = { stringResource(id = R.string.detail_event_title) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Indietro"
+                            contentDescription = stringResource(id = R.string.back)
                         )
                     }
                 },
@@ -69,7 +71,7 @@ fun EventDetailScreen(
                     ) {
                         Icon(
                             imageVector = if (uiState.isFavorite) Icons.Filled.Star else Icons.Default.StarBorder,
-                            contentDescription = if (uiState.isFavorite) "Rimuovi dai preferiti" else "Aggiungi ai preferiti",
+                            contentDescription = if (uiState.isFavorite) stringResource(id = R.string.card_event_remove_star) else stringResource(id = R.string.card_event_added_star),
                             tint = if (uiState.isFavorite) Color(0xFFFFD700) else LocalContentColor.current
                         )
                     }
@@ -99,7 +101,7 @@ fun EventDetailScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     ErrorMessage(
-                        message = uiState.error ?: "Errore sconosciuto",
+                        message = uiState.error ?: stringResource(id = R.string.unknown_error),
                         onRetryClick = { viewModel.onRetry() }
                     )
                 }
@@ -122,7 +124,7 @@ fun EventDetailScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Evento non trovato",
+                        text = stringResource(id = R.string.home_nothing_events),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
@@ -298,7 +300,7 @@ private fun extractEventSections(description: String): EventSections {
 @Composable
 private fun EventInfoSection(eventInfo: String) {
     SectionCard(
-        title = "Informazioni Evento",
+        title = stringResource(id = R.string.detail_event_info_title),
         icon = Icons.Default.Info
     ) {
         FormattedDescriptionText(
@@ -313,7 +315,7 @@ private fun EventInfoSection(eventInfo: String) {
 @Composable
 private fun PresentationSection(presentation: String) {
     SectionCard(
-        title = "Presentazione",
+        title = stringResource(id = R.string.detail_event_presentation_title),
         icon = Icons.Default.Description
     ) {
         Text(
@@ -328,7 +330,7 @@ private fun PresentationSection(presentation: String) {
 @Composable
 private fun ProfessionsSection(professions: String) {
     SectionCard(
-        title = "Professioni e Discipline",
+        title = stringResource(id = R.string.detail_event_profession_title),
         icon = Icons.Default.Work
     ) {
         Text(
@@ -343,7 +345,7 @@ private fun ProfessionsSection(professions: String) {
 @Composable
 private fun LocationInfoSection(locationInfo: String) {
     SectionCard(
-        title = "Sede dell'Evento",
+        title = stringResource(id = R.string.detail_event_place_title),
         icon = Icons.Default.LocationOn
     ) {
         FormattedDescriptionText(
@@ -414,7 +416,7 @@ private fun HeroSection(event: Event) {
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text(
-                    text = "In Evidenza",
+                    text = stringResource(id = R.string.detail_event_feature),
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                     color = MaterialTheme.colorScheme.onSecondary,
                     fontSize = 12.sp,
@@ -442,7 +444,7 @@ private fun HeroSection(event: Event) {
 @Composable
 private fun DateSection(parsedInfo: ParsedEventInfo) {
     SectionCard(
-        title = "Data e Ora",
+        title = stringResource(id = R.string.detail_event_date_title),
         icon = Icons.Default.Event
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -502,7 +504,7 @@ private fun DateSection(parsedInfo: ParsedEventInfo) {
 @Composable
 private fun LocationSection(venue: EventVenue) {
     SectionCard(
-        title = "Sede dell'evento",
+        title = stringResource(id = R.string.detail_event_place_title),
         icon = Icons.Default.LocationOn
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -538,7 +540,7 @@ private fun LocationSection(venue: EventVenue) {
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Sito web della sede")
+                    Text(stringResource(id = R.string.detail_event_website_title))
                 }
             }
         }
@@ -632,7 +634,7 @@ private fun FormattedLineText(
 @Composable
 private fun OrganizerSection(organizers: List<EventOrganizer>) {
     SectionCard(
-        title = "Organizzatori",
+        title = stringResource(id = R.string.detail_event_organization_title),
         icon = Icons.Default.People
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -681,7 +683,7 @@ private fun OrganizerSection(organizers: List<EventOrganizer>) {
 @Composable
 private fun CategoriesSection(categories: List<EventCategory>) {
     SectionCard(
-        title = "Categorie",
+        title = stringResource(id = R.string.detail_event_categories_title),
         icon = Icons.Default.Label
     ) {
         LazyRow(
@@ -727,7 +729,7 @@ private fun ActionButtonsSection(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = if (eventLink != null) "Iscriviti all'evento" else "Vai al sito dell'evento",
+                    text = if (eventLink != null) stringResource(id = R.string.detail_event_subscript) else "Vai al sito dell'evento",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -746,7 +748,7 @@ private fun ActionButtonsSection(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Condividi evento",
+                text = stringResource(id = R.string.detail_event_shared),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium
             )

@@ -6,18 +6,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rix.womblab.presentation.theme.WombLabTheme
+import com.rix.womblab.R
 
 @Composable
 fun EmptyState(
     title: String,
     description: String,
-    emoji: String = "📅",
+    emoji: String = stringResource(id = R.string.emoji_calendar),
     actionText: String? = null,
     onActionClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
@@ -89,27 +91,27 @@ fun ComponentsPreview() {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             LoadingIndicator(
-                message = "Caricamento eventi...",
+                message = stringResource(id = R.string.events_loading),
                 modifier = Modifier.height(120.dp)
             )
 
             CompactLoadingIndicator()
 
             ErrorMessage(
-                message = "Impossibile caricare gli eventi. Controlla la connessione internet e riprova.",
+                message = stringResource(id = R.string.error_impossible_load_data),
                 onRetryClick = { }
             )
 
             CompactErrorMessage(
-                message = "Errore di connessione",
+                message = stringResource(id = R.string.error_connect),
                 onRetryClick = { }
             )
 
             EmptyState(
-                title = "Nessun evento trovato",
-                description = "Non ci sono eventi disponibili al momento. Controlla più tardi per nuovi aggiornamenti.",
-                emoji = "📅",
-                actionText = "Aggiorna",
+                title =  stringResource(id = R.string.home_nothing_events),
+                description = stringResource(id = R.string.nothing_events_program_description),
+                emoji = stringResource(id = R.string.emoji_calendar),
+                actionText = stringResource(id = R.string.upload),
                 onActionClick = { }
             )
         }

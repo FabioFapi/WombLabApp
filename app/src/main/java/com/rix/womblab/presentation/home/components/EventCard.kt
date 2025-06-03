@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,6 +38,7 @@ import com.rix.womblab.presentation.theme.WombLabTheme
 import com.rix.womblab.utils.EventCardImage
 import kotlinx.coroutines.delay
 import java.time.LocalDateTime
+import com.rix.womblab.R
 
 @Stable
 data class EventCardAnimationState(
@@ -411,7 +413,7 @@ private fun CompactImageSection(event: Event) {
                     .padding(4.dp)
             ) {
                 Text(
-                    text = "★",
+                    text = stringResource(id = R.string.card_event_star),
                     color = MaterialTheme.colorScheme.onPrimary,
                     fontSize = 12.sp
                 )
@@ -439,7 +441,7 @@ private fun OptimizedFavoriteButton(
     ) {
         Icon(
             imageVector = if (isFavorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
-            contentDescription = if (isFavorite) "Rimuovi dai preferiti" else "Aggiungi ai preferiti",
+            contentDescription = if (isFavorite) stringResource(id = R.string.card_event_remove_star) else stringResource(id = R.string.card_event_added_star),
             tint = color,
             modifier = Modifier.size(size)
         )
@@ -492,7 +494,7 @@ private fun OptimizedCategories(categories: List<com.rix.womblab.domain.model.Ev
 
 @Composable
 private fun FeaturedBadgeOptimized() {
-    val infiniteTransition = rememberInfiniteTransition(label = "featuredBadge")
+    val infiniteTransition = rememberInfiniteTransition(label = stringResource( id= R.string.card_event_featuredBadge))
     val shimmer by infiniteTransition.animateFloat(
         initialValue = 0.9f,
         targetValue = 1f,
@@ -500,7 +502,7 @@ private fun FeaturedBadgeOptimized() {
             animation = tween(2000),
             repeatMode = RepeatMode.Reverse
         ),
-        label = "shimmer"
+        label = stringResource( id= R.string.card_event_featuredBadge_label)
     )
 
     Card(
@@ -511,7 +513,7 @@ private fun FeaturedBadgeOptimized() {
         shape = RoundedCornerShape(8.dp)
     ) {
         Text(
-            text = "⭐ In evidenza",
+            text = stringResource(id = R.string.card_event_featured),
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
             color = MaterialTheme.colorScheme.onPrimary,
             fontSize = 12.sp,

@@ -9,19 +9,21 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rix.womblab.presentation.theme.WombLabTheme
+import com.rix.womblab.R
 
 @Composable
 fun ErrorMessage(
     message: String,
     onRetryClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
-    title: String = "Ops! Qualcosa è andato storto"
+    title: String = stringResource(id = R.string.error_ops)
 ) {
     Card(
         modifier = modifier
@@ -84,7 +86,7 @@ fun ErrorMessage(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Riprova",
+                        text = stringResource(id = R.string.retry),
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -131,7 +133,7 @@ fun CompactErrorMessage(
                 )
             ) {
                 Text(
-                    text = "Riprova",
+                    text = stringResource(id = R.string.retry),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium
                 )

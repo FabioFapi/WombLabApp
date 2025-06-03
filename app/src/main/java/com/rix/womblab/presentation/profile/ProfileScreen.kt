@@ -1,5 +1,6 @@
 package com.rix.womblab.presentation.profile
 
+import android.R.attr.fontWeight
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -22,6 +23,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -62,10 +64,8 @@ fun ProfileScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text(
-                        text = "Profilo",
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text(text = stringResource(id = R.string.profile_title), fontWeight = FontWeight.Bold)
+
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color.Transparent
@@ -85,7 +85,6 @@ fun ProfileScreen(
                 uiState.isLoading && uiState.user == null -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
                     ) {
                         LoadingIndicator()
                     }
@@ -97,7 +96,7 @@ fun ProfileScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         ErrorMessage(
-                            message = uiState.error ?: "Errore sconosciuto",
+                            message = uiState.error ?: stringResource(id = R.string.unknown_error),
                             onRetryClick = { viewModel.refreshProfile() }
                         )
                     }
@@ -143,7 +142,7 @@ private fun LogoutConfirmationDialog(
         },
         title = {
             Text(
-                text = "Conferma Logout",
+                text = stringResource(id = R.string.logout_confirmation_title),
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -151,7 +150,7 @@ private fun LogoutConfirmationDialog(
         text = {
             Column {
                 Text(
-                    text = "Sei sicuro di voler uscire dall'app?",
+                    text = stringResource(id = R.string.logout_confirmation_message),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
@@ -159,7 +158,7 @@ private fun LogoutConfirmationDialog(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Dovrai effettuare nuovamente l'accesso per utilizzare l'app.",
+                    text = stringResource(id = R.string.logout_confirmation_submessage),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                     textAlign = TextAlign.Center
@@ -182,7 +181,7 @@ private fun LogoutConfirmationDialog(
                         strokeWidth = 2.dp
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Uscendo...")
+                    Text(stringResource(id = R.string.logging_out))
                 } else {
                     Icon(
                         imageVector = Icons.Default.Logout,
@@ -190,7 +189,7 @@ private fun LogoutConfirmationDialog(
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Esci")
+                    Text(stringResource(id = R.string.logout))
                 }
             }
         },
@@ -200,7 +199,7 @@ private fun LogoutConfirmationDialog(
                 enabled = !isLoggingOut
             ) {
                 Text(
-                    text = "Annulla",
+                    text = stringResource(id = R.string.cancel),
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -276,7 +275,7 @@ private fun ProfileHeader(
                     .data(user?.photoUrl ?: "")
                     .crossfade(true)
                     .build(),
-                contentDescription = "Foto profilo",
+                contentDescription = stringResource(id = R.string.content_description_profile_image),
                 modifier = Modifier
                     .size(100.dp)
                     .clip(CircleShape)
@@ -290,7 +289,7 @@ private fun ProfileHeader(
                 text = if (userProfile != null) {
                     "${userProfile.firstName} ${userProfile.lastName}"
                 } else {
-                    user?.displayName ?: "Utente"
+                    user?.displayName ?: stringResource(id = R.string.user)
                 },
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
@@ -347,14 +346,14 @@ private fun StatsSection(
             StatItem(
                 icon = Icons.Default.Star,
                 value = favoriteEventsCount.toString(),
-                label = "Eventi Salvati",
+                label = stringResource(id = R.string.saved_events),
                 color = Color(0xFFFFD700)
             )
 
             StatItem(
                 icon = Icons.Default.Event,
                 value = "",
-                label = "WombLab",
+                label = stringResource(id = R.string.label_womblab_app),
                 color = MaterialTheme.colorScheme.primary
             )
         }
@@ -413,7 +412,7 @@ private fun ProfileInfoSection(
             modifier = Modifier.padding(20.dp)
         ) {
             Text(
-                text = "Informazioni Professionali",
+                text = stringResource(id = R.string.professional_info),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
@@ -423,7 +422,7 @@ private fun ProfileInfoSection(
             userProfile.specialization?.let { specialization ->
                 InfoRow(
                     icon = Icons.Default.Work,
-                    label = "Specializzazione",
+                    label = stringResource(id = R.string.specialization),
                     value = specialization
                 )
             }
@@ -431,7 +430,7 @@ private fun ProfileInfoSection(
             userProfile.workplace?.let { workplace ->
                 InfoRow(
                     icon = Icons.Default.Business,
-                    label = "Luogo di Lavoro",
+                    label = stringResource(id = R.string.workplace),
                     value = workplace
                 )
             }
@@ -439,7 +438,7 @@ private fun ProfileInfoSection(
             userProfile.city?.let { city ->
                 InfoRow(
                     icon = Icons.Default.LocationOn,
-                    label = "Città",
+                    label = stringResource(id = R.string.city),
                     value = city
                 )
             }
@@ -447,7 +446,7 @@ private fun ProfileInfoSection(
             userProfile.phone?.let { phone ->
                 InfoRow(
                     icon = Icons.Default.Phone,
-                    label = "Telefono",
+                    label = stringResource(id = R.string.phone),
                     value = phone
                 )
             }
@@ -517,7 +516,7 @@ private fun ActionsSection(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Esci",
+                text = stringResource(id = R.string.logout),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -547,7 +546,7 @@ private fun ActionsSection(
 
                     Image(
                         painter = painterResource(id = R.drawable.womblab_logo),
-                        contentDescription = "WombLab Logo",
+                        contentDescription = stringResource(id = R.string.content_description_logo_image),
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape),
@@ -555,19 +554,19 @@ private fun ActionsSection(
                     )
                 }
                 Text(
-                    text = " WombLab",
+                    text = stringResource(id = R.string.app_name),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "La tua app per eventi formativi",
+                    text = stringResource(id = R.string.app_description),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Versione 1.0.0",
+                    text = stringResource(id = R.string.app_version),
                     fontSize = 10.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

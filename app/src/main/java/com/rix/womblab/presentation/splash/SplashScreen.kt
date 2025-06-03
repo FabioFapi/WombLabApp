@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -73,7 +74,7 @@ fun SplashScreen(
 
                 Image(
                     painter = painterResource(id = R.drawable.womblab_logo),
-                    contentDescription = "WombLab Logo",
+                    contentDescription = stringResource(id = R.string.content_description_logo_image),
                     modifier = Modifier
                         .size(80.dp)
                         .clip(CircleShape),
@@ -82,7 +83,7 @@ fun SplashScreen(
             }
 
             Text(
-                text = "WombLab",
+                text = stringResource(id = R.string.app_name),
                 style = MaterialTheme.typography.headlineLarge.copy(
                     fontWeight = FontWeight.Bold
                 ),
@@ -91,7 +92,7 @@ fun SplashScreen(
             )
 
             Text(
-                text = "Eventi Formativi Professionali",
+                text = stringResource(id = R.string.splash_message),
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.White.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center

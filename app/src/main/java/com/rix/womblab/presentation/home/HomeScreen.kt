@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,6 +32,9 @@ import com.rix.womblab.presentation.components.WombLabTopBar
 import com.rix.womblab.presentation.theme.WombLabTheme
 import com.rix.womblab.utils.HomeScreenImagePreloader
 import kotlinx.coroutines.delay
+import androidx.compose.ui.res.stringResource
+import com.rix.womblab.R
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,7 +72,7 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             WombLabTopBar(
-                title = "Eventi",
+                title = stringResource(id = R.string.home_title),
                 searchQuery = uiState.searchQuery,
                 onSearchQueryChanged = viewModel::onSearchQueryChanged,
                 onSearchToggle = {
@@ -107,7 +111,7 @@ fun HomeScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         SlideInErrorMessage(
-                            message = uiState.error ?: "Errore sconosciuto",
+                            message = uiState.error ?: stringResource(id = R.string.unknown_error),
                             onRetryClick = { viewModel.onRefresh() }
                         )
                     }
@@ -213,8 +217,8 @@ private fun AnimatedSearchSection(
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             AnimatedHeaderSection(
-                title = "Risultati per \"$searchQuery\"",
-                subtitle = if (searchResults.isNotEmpty()) "${searchResults.size} eventi trovati" else null,
+                title = "${stringResource(id = R.string.home_search_title)} \"$searchQuery\"",
+                subtitle = if (searchResults.isNotEmpty()) "${searchResults.size} ${stringResource(id = R.string.home_search_description)}" else null,
                 animationDelay = 0
             )
 
@@ -234,9 +238,9 @@ private fun AnimatedSearchSection(
 
                 searchResults.isEmpty() -> {
                     AnimatedEmptyState(
-                        title = "Nessun evento trovato",
-                        description = "Prova con parole chiave diverse",
-                        emoji = "🔍"
+                        title = stringResource(id = R.string.home_nothing_events),
+                        description = stringResource(id = R.string.home_nothing_events_description),
+                        emoji = stringResource(id = R.string.home_search_emoji)
                     )
                 }
 
@@ -272,8 +276,8 @@ private fun AnimatedFavoritesSection(
         }
     ) {
         AnimatedHeaderSection(
-            title = "I tuoi eventi salvati",
-            subtitle = "${favoriteEvents.size} eventi",
+            title = stringResource(id = R.string.home_favourite),
+            subtitle = "${favoriteEvents.size} ${stringResource(id = R.string.events)}",
             animationDelay = 200
         )
 
@@ -311,8 +315,8 @@ private fun AnimatedFeaturedSection(
         }
     ) {
         AnimatedHeaderSection(
-            title = "Eventi in evidenza",
-            subtitle = "Selezionati per te",
+            title = stringResource(id = R.string.home_events),
+            subtitle = stringResource(id = R.string.home_events_for_you),
             animationDelay = 300
         )
 
@@ -345,8 +349,8 @@ private fun AnimatedUpcomingSection(
 ) {
     Column {
         AnimatedHeaderSection(
-            title = "Prossimi eventi",
-            subtitle = if (upcomingEvents.isNotEmpty()) "${upcomingEvents.size} eventi disponibili" else "",
+            title = stringResource(id = R.string.home_next_events),
+            subtitle = if (upcomingEvents.isNotEmpty()) "${upcomingEvents.size} ${stringResource(id = R.string.home_events_header)}" else "",
             animationDelay = 400
         )
 
@@ -355,9 +359,9 @@ private fun AnimatedUpcomingSection(
         when {
             upcomingEvents.isEmpty() && !isLoading -> {
                 AnimatedEmptyState(
-                    title = "Nessun evento in programma",
-                    description = "Controlla più tardi per nuovi eventi",
-                    emoji = "📅"
+                    title = stringResource(id = R.string.home_nothing_events_program),
+                    description = stringResource(id = R.string.home_nothing_events_program_description),
+                    emoji = stringResource(id = R.string.home_nothing_events_program_emoji)
                 )
             }
 
@@ -402,7 +406,7 @@ private fun AnimatedUpcomingSection(
                                 ) {
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
-                                        text = "Hai visualizzato tutti gli eventi!",
+                                        text = stringResource(id = R.string.home_view_all_events),
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         fontSize = 14.sp,
                                         textAlign = TextAlign.Center
@@ -475,7 +479,7 @@ private fun AnimatedHeaderSection(
 private fun AnimatedLoadingIndicator(
     size: androidx.compose.ui.unit.Dp = 48.dp
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "loading")
+    val infiniteTransition = rememberInfiniteTransition(label = stringResource(id = R.string.loading))
     val scale by infiniteTransition.animateFloat(
         initialValue = 0.8f,
         targetValue = 1.2f,
@@ -483,7 +487,7 @@ private fun AnimatedLoadingIndicator(
             animation = tween(1000),
             repeatMode = RepeatMode.Reverse
         ),
-        label = "scale"
+        label = stringResource(id = R.string.label_loading)
     )
 
     val rotation by infiniteTransition.animateFloat(
@@ -492,7 +496,7 @@ private fun AnimatedLoadingIndicator(
         animationSpec = infiniteRepeatable(
             animation = tween(2000, easing = LinearEasing)
         ),
-        label = "rotation"
+        label = stringResource(id = R.string.notifications_animated_rotation)
     )
 
     Box(
@@ -500,7 +504,7 @@ private fun AnimatedLoadingIndicator(
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "🔬",
+            text = stringResource(id = R.string.home_emoji),
             fontSize = (size.value * 0.6f).sp,
             modifier = Modifier
                 .graphicsLayer {

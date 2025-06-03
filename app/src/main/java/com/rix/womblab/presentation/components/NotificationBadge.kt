@@ -11,10 +11,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.rix.womblab.domain.repository.NotificationRepository
 import javax.inject.Inject
+import com.rix.womblab.R
 
 @Composable
 fun NotificationIconWithBadge(
@@ -28,7 +30,7 @@ fun NotificationIconWithBadge(
         IconButton(onClick = onClick) {
             Icon(
                 imageVector = Icons.Outlined.Notifications,
-                contentDescription = "Notifiche",
+                contentDescription = stringResource(R.string.notifications_title),
                 tint = MaterialTheme.colorScheme.onSurface
             )
         }

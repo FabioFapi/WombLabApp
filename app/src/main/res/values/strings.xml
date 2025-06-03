@@ -1,38 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">WombLab</string>
 
-        <!-- Notifications -->
-        <string name="notification_channel_reminders">Promemoria Eventi</string>
-        <string name="notification_channel_new_events">Nuovi Eventi</string>
-        <string name="notification_channel_reminders_desc">Promemoria per eventi salvati nei preferiti</string>
-        <string name="notification_channel_new_events_desc">Notifiche quando vengono pubblicati nuovi eventi</string>
+    <!-- General -->
+    <string name="user">Utente</string>
+    <string name="loading">loading</string>
+    <string name="upload">Aggiorna</string>
+    <string name="retry">Riprova</string>
+    <string name="delete">Elimina</string>
+    <string name="options">Opzioni</string>
+    <string name="back">Indietro</string>
+    <string name="events">Eventi</string>
+    <string name="label_loading">scale</string>
+    <string name="emoji_calendar">📅</string>
 
-        <!-- Notification Messages -->
-        <string name="notification_new_event_title">🆕 Nuovo evento disponibile</string>
-        <string name="notification_new_events_title">🆕 Nuovi eventi disponibili</string>
-        <string name="notification_reminder_24h">📅 Evento domani</string>
-        <string name="notification_reminder_1h">⏰ Evento tra 1 ora</string>
-        <string name="notification_reminder_15m">🔔 Evento tra 15 minuti</string>
-        <string name="notification_favorite_added">⭐ Evento salvato</string>
-        <string name="notification_favorite_removed">💔 Evento rimosso</string>
+    <!-- Error -->
+    <string name="unknown_error">errore sconosciuto</string>
+    <string name="error_impossible_load_data">Impossibile caricare gli eventi. Controlla la connessione internet e riprova.</string>
+    <string name="error_connect">Errore di connessione</string>
+    <string name="error_ops">Ops! Qualcosa è andato storto</string>
 
-        <!-- Notification Screen -->
-        <string name="notifications_title">Notifiche</string>
-        <string name="notifications_empty_title">Nessuna notifica</string>
-        <string name="notifications_empty_message">Le tue notifiche appariranno qui</string>
-        <string name="notifications_mark_all_read">Segna tutto come letto</string>
-        <string name="notifications_clear_old">Elimina vecchie notifiche</string>
+    <!-- Notifications -->
+    <string name="notification_channel_reminders">Promemoria Eventi</string>
+    <string name="notification_channel_new_events">Nuovi Eventi</string>
+    <string name="notification_channel_reminders_desc">Promemoria per eventi salvati nei preferiti</string>
+    <string name="notification_channel_new_events_desc">Notifiche quando vengono pubblicati nuovi eventi</string>
+    <string name="notification_new_event_title">🆕 Nuovo evento disponibile</string>
+    <string name="notification_new_events_title">🆕 Nuovi eventi disponibili</string>
+    <string name="notification_reminder_24h">📅 Evento domani</string>
+    <string name="notification_reminder_1h">⏰ Evento tra 1 ora</string>
+    <string name="notification_reminder_15m">🔔 Evento tra 15 minuti</string>
+    <string name="notification_favorite_added">⭐ Evento salvato</string>
+    <string name="notification_favorite_removed">💔 Evento rimosso</string>
 
-        <!-- Time formatting -->
-        <string name="time_now">Ora</string>
-        <string name="time_minutes_ago">%dm</string>
-        <string name="time_hours_ago">%dh</string>
-        <string name="time_days_ago">%dg</string>
+    <!-- Notification Screen -->
+    <string name="notifications_title">Notifiche</string>
+    <string name="notifications_emoji">🔔</string>
+    <string name="notifications_empty_title">Nessuna notifica</string>
+    <string name="notifications_empty_message">Le tue notifiche appariranno qui</string>
+    <string name="notifications_dropmenu">Segna come letta</string>
+    <string name="notifications_mark_all_read">Segna tutto come letto</string>
+    <string name="notifications_clear_old">Elimina vecchie notifiche</string>
+    <string name="notifications_loading">Caricamento notifiche...</string>
+    <string name="notifications_nothing">Nessuna notifica</string>
+    <string name="notifications_animated_rotation">rotation</string>
+    <string name="notifications_no_new_events">Le tue notifiche appariranno qui quando ci saranno aggiornamenti sui tuoi eventi</string>
 
-        <!-- Date groups -->
-        <string name="date_today">Oggi</string>
-        <string name="date_yesterday">Ieri</string>
-        <string name="date_this_week">Questa settimana</string>
-        <string name="date_this_month">Questo mese</string>
-        <string name="date_older">Più vecchie</string>
+    <!-- Time formatting -->
+    <string name="time_now">Ora</string>
+    <string name="time_minutes_ago">%dm</string>
+    <string name="time_hours_ago">%dh</string>
+    <string name="time_days_ago">%dg</string>
+
+    <!-- Date groups -->
+    <string name="date_today">Oggi</string>
+    <string name="date_yesterday">Ieri</string>
+    <string name="date_this_week">Questa settimana</string>
+    <string name="date_this_month">Questo mese</string>
+    <string name="date_older">Più vecchie</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_title">Profilo</string>
+    <string name="logout_confirmation_title">Conferma Logout</string>
+    <string name="logout_confirmation_message">Sei sicuro di voler uscire dall\'app?</string>
+    <string name="logout_confirmation_submessage">Dovrai effettuare nuovamente l\'accesso per utilizzare l\'app.</string>
+    <string name="logging_out">Uscendo...</string>
+    <string name="logout">Esci</string>
+    <string name="cancel">Annulla</string>
+    <string name="content_description_profile_image">Foto profilo</string>
+    <string name="content_description_logo_image">Logo WombLab</string>
+    <string name="saved_events">Eventi Salvati</string>
+    <string name="label_womblab_app">WombLab</string>
+    <string name="professional_info">Informazioni Professionali</string>
+    <string name="specialization">Specializzazione</string>
+    <string name="workplace">Luogo di Lavoro</string>
+    <string name="city">Città</string>
+    <string name="phone">Telefono</string>
+    <string name="app_description">La tua app per eventi formativi</string>
+    <string name="app_version">Versione 1.0.0</string>
+
+    <!-- Splash Screen -->
+    <string name="splash_message">Eventi Formativi Professionali</string>
+
+    <!-- Home Screen -->
+    <string name="home_title">Eventi</string>
+    <string name="home_emoji">🔬</string>
+    <string name="home_search_title">Risultati per</string>
+    <string name="home_search_description">eventi trovati</string>
+    <string name="home_search_emoji">🔍</string>
+    <string name="home_nothing_events">Nessun evento trovato</string>
+    <string name="home_nothing_events_description">Prova con parole chiave diverse</string>
+    <string name="home_events_header">eventi disponibili</string>
+    <string name="home_favourite">I tuoi eventi salvati</string>
+    <string name="home_events">Eventi in evidenza</string>
+    <string name="home_events_for_you">Selezionati per te</string>
+    <string name="home_next_events">Prossimi eventi</string>
+    <string name="home_nothing_events_program">Nessun evento in programma</string>
+    <string name="home_nothing_events_program_description">Controlla più tardi per nuovi eventi</string>
+    <string name="home_nothing_events_program_emoji">📅</string>
+    <string name="home_view_all_events">Hai visualizzato tutti gli eventi!</string>
+
+    <!-- Card Event -->
+    <string name="card_event_star">★</string>
+    <string name="card_event_remove_star">Rimuovi dai preferiti</string>
+    <string name="card_event_added_star">Aggiunto ai preferiti</string>
+    <string name="card_event_featuredBadge">featuredBadge</string>
+    <string name="card_event_featuredBadge_label">shimmer</string>
+    <string name="card_event_featured">⭐ In Evidenza</string>
+
+    <!-- Detail Event -->
+    <string name="detail_event_title">Dettaglio Evento</string>
+    <string name="detail_event_emoji_event_title">🎯</string>
+    <string name="detail_event_emoji_event_date">📅 Data:</string>
+    <string name="detail_event_emoji_event_city">📍 Sede:</string>
+    <string name="detail_event_emoji_event_subscribt">🔗 Iscriviti:</string>
+    <string name="detail_event_emoji_event_info">🔗 Info:</string>
+    <string name="detail_event_shared">Condividi evento</string>
+    <string name="detail_event_info_title">Informazioni Evento</string>
+    <string name="detail_event_presentation_title">Presentazione</string>
+    <string name="detail_event_profession_title">Professioni e Discipline</string>
+    <string name="detail_event_place_title">Sede dell\'Evento</string>
+    <string name="detail_event_feature">In Evidenza</string>
+    <string name="detail_event_date_title">Data e Ora</string>
+    <string name="detail_event_website_title">Sito web della sede</string>
+    <string name="detail_event_organization_title">Organizzatori</string>
+    <string name="detail_event_categories_title">Categorie</string>
+    <string name="detail_event_subscript">Iscriviti all\'evento</string>
+
+    <!-- Empty State -->
+    <string name="events_loading">Caricamento eventi...</string>
+    <string name="nothing_events_program_description">Non ci sono eventi disponibili al momento. Controlla più tardi per nuovi aggiornamenti.</string>
+
+    <!-- Loading Indicator -->
+    <string name="loading_indicator_message">Caricamento in corso...</string>
+    <string name="search_events">Cerca Eventi</string>
+    <string name="search_events_label">Cerca eventi...</string>
+    <string name="remove_search">Cancella ricerca</string>
+    <string name="close_search">Chiudi ricerca</string>
+
+    <!-- Calendar Screen -->
+    <string name="calendar_title">Calendario Eventi</string>
+    <string name="month_pre">Mese precedente</string>
+    <string name="month_post">Mese successivo</string>
+    <string name="calendar_nothing_events_program_description">Non ci sono eventi programmati per questa data</string>
+
+    <!-- Navigator -->
+    <string name="label_home">Home</string>
+    <string name="label_calendar">Calendario</string>
+    <string name="label_profile">Profilo</string>
 </resources>

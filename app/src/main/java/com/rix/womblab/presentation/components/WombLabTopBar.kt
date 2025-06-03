@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,7 +35,7 @@ import com.rix.womblab.presentation.theme.WombLabTheme
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun WombLabTopBar(
-    title: String = "WombLab",
+    title: String = stringResource(id = R.string.app_name),
     searchQuery: String = "",
     onSearchQueryChanged: (String) -> Unit = {},
     onSearchToggle: () -> Unit = {},
@@ -89,7 +90,7 @@ fun WombLabTopBar(
                 IconButton(onClick = onSearchToggle) {
                     Icon(
                         imageVector = Icons.Default.Search,
-                        contentDescription = "Cerca eventi",
+                        contentDescription = stringResource(id = R.string.search_events),
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -98,7 +99,7 @@ fun WombLabTopBar(
                     IconButton(onClick = onNotificationClick) {
                         Icon(
                             imageVector = Icons.Default.Notifications,
-                            contentDescription = "Notifiche",
+                            contentDescription = stringResource(id = R.string.notifications_title),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -138,7 +139,7 @@ private fun TitleSection(title: String) {
             )
             Image(
                 painter = painterResource(id = R.drawable.womblab_logo),
-                contentDescription = "WombLab Logo",
+                contentDescription = stringResource(id = R.string.content_description_logo_image),
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(CircleShape),
@@ -174,7 +175,7 @@ private fun SearchBar(
         onValueChange = onQueryChanged,
         placeholder = {
             Text(
-                text = "Cerca eventi...",
+                text = stringResource(id = R.string.search_events_label),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         },
@@ -194,7 +195,7 @@ private fun SearchBar(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Clear,
-                        contentDescription = "Cancella ricerca",
+                        contentDescription = stringResource(id = R.string.remove_search),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp)
                     )
@@ -206,7 +207,7 @@ private fun SearchBar(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Chiudi ricerca",
+                        contentDescription = stringResource(id = R.string.close_search),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp)
                     )

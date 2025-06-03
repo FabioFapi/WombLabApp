@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,6 +37,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.*
+import com.rix.womblab.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +53,7 @@ fun CalendarScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Calendario Eventi",
+                        text = stringResource(id = R.string.calendar_title),
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -73,10 +75,9 @@ fun CalendarScreen(
                 uiState.error != null && uiState.events.isEmpty() -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
                     ) {
                         ErrorMessage(
-                            message = uiState.error ?: "Errore sconosciuto",
+                            message = uiState.error ?: stringResource(id = R.string.unknown_error),
                             onRetryClick = { viewModel.onRefresh() }
                         )
                     }
@@ -184,7 +185,7 @@ private fun CalendarHeader(
         ) {
             Icon(
                 imageVector = Icons.Default.ChevronLeft,
-                contentDescription = "Mese precedente"
+                contentDescription = stringResource(id = R.string.month_pre)
             )
         }
 
@@ -200,7 +201,7 @@ private fun CalendarHeader(
         ) {
             Icon(
                 imageVector = Icons.Default.ChevronRight,
-                contentDescription = "Mese successivo"
+                contentDescription = stringResource(id = R.string.month_post)
             )
         }
     }
@@ -356,8 +357,8 @@ private fun SelectedDateSection(
             when {
                 eventsForDate.isEmpty() -> {
                     EmptyState(
-                        title = "Nessun evento",
-                        description = "Non ci sono eventi programmati per questa data",
+                        title = stringResource(id = R.string.home_nothing_events_program),
+                        description = stringResource(id = R.string.calendar_nothing_events_program_description),
                         emoji = "\uD83D\uDCC5",
                         modifier = Modifier.fillMaxWidth()
                     )

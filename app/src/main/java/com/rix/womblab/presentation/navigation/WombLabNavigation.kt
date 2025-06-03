@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -173,7 +174,7 @@ private fun SplashScreenWithAuth(
             }
 
             Text(
-                text = "WombLab",
+                text = stringResource(id = R.string.app_name),
                 style = MaterialTheme.typography.headlineLarge.copy(
                     fontWeight = FontWeight.Bold
                 ),
@@ -182,7 +183,7 @@ private fun SplashScreenWithAuth(
             )
 
             Text(
-                text = "Eventi Formativi Professionali",
+                text = stringResource(id = R.string.splash_message),
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.White.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center
