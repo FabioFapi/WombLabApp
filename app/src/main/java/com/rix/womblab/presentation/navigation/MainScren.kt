@@ -2,7 +2,7 @@ package com.rix.womblab.presentation.navigation
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.gestures.*
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -12,7 +12,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -23,8 +22,8 @@ import androidx.navigation.compose.rememberNavController
 import com.rix.womblab.presentation.calendar.CalendarScreen
 import com.rix.womblab.presentation.detail.EventDetailScreen
 import com.rix.womblab.presentation.home.HomeScreen
-import com.rix.womblab.presentation.profile.ProfileScreen
 import com.rix.womblab.presentation.notifications.NotificationsScreen
+import com.rix.womblab.presentation.profile.ProfileScreen
 import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,20 +52,22 @@ fun MainScreen(
 
     Scaffold(
         bottomBar = {
-            ProfessionalNavigationBar(
-                currentDestination = currentDestination,
-                currentTabIndex = currentTabIndex,
-                onNavigate = { route, index ->
-                    currentTabIndex = index
-                    navController.navigate(route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+            if (currentDestination?.route != Screen.EventDetail.route && currentDestination?.route != Screen.Notifications.route) {
+                ProfessionalNavigationBar(
+                    currentDestination = currentDestination,
+                    currentTabIndex = currentTabIndex,
+                    onNavigate = { route, index ->
+                        currentTabIndex = index
+                        navController.navigate(route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
                     }
-                }
-            )
+                )
+            }
         }
     ) { innerPadding ->
         Box(
@@ -188,7 +189,7 @@ fun MainScreen(
                 composable(Screen.Home.route) {
                     HomeScreen(
                         onEventClick = { eventId ->
-                            navController.navigate("event_detail/$eventId")
+                            navController.navigate(Screen.EventDetail.createRoute(eventId))
                         },
                         onNavigateToNotifications = {
                             navController.navigate(Screen.Notifications.route)
@@ -208,7 +209,7 @@ fun MainScreen(
                     NotificationsScreen(
                         onNavigateBack = { navController.popBackStack() },
                         onNavigateToEvent = { eventId ->
-                            navController.navigate("event_detail/$eventId")
+                            navController.navigate(Screen.EventDetail.createRoute(eventId))
                         }
                     )
                 }
@@ -347,7 +348,7 @@ private fun ProfessionalNavigationBar(
                         )
                     ) {
                         Text(
-                            text = stringResource(id = item.labelResId),
+                            text = androidx.compose.ui.res.stringResource(id = item.labelResId),
                             style = MaterialTheme.typography.labelSmall
                         )
                     }
