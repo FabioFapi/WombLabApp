@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,8 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.*
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,7 +43,6 @@ fun CalendarScreen(
     viewModel: CalendarViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val pullToRefreshState = rememberPullToRefreshState()
 
     Scaffold(
         topBar = {
@@ -63,24 +59,22 @@ fun CalendarScreen(
             )
         }
     ) { paddingValues ->
-        PullToRefreshBox(
-            isRefreshing = uiState.isLoading,
-            onRefresh = { viewModel.onRefresh() },
-            state = pullToRefreshState,
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
             when {
                 uiState.error != null && uiState.events.isEmpty() -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        ErrorMessage(
-                            message = uiState.error ?: stringResource(id = R.string.unknown_error),
-                            onRetryClick = { viewModel.onRefresh() }
-                        )
-                    }
+                    ErrorMessage(
+                        message = uiState.error ?: stringResource(id = R.string.unknown_error),
+                        onRetryClick = { viewModel.onRefresh() },
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+
+                uiState.isLoading && uiState.events.isEmpty() -> {
+                    LoadingIndicator(modifier = Modifier.align(Alignment.Center))
                 }
 
                 else -> {
@@ -90,7 +84,8 @@ fun CalendarScreen(
                         onMonthChanged = viewModel::onMonthChanged,
                         onEventClick = onEventClick,
                         onFavoriteClick = viewModel::onToggleFavorite,
-                        hasEventsOnDate = viewModel::hasEventsOnDate
+                        hasEventsOnDate = viewModel::hasEventsOnDate,
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             }
@@ -105,10 +100,11 @@ private fun CalendarContent(
     onMonthChanged: (YearMonth) -> Unit,
     onEventClick: (String) -> Unit,
     onFavoriteClick: (String) -> Unit,
-    hasEventsOnDate: (LocalDate) -> Boolean
+    hasEventsOnDate: (LocalDate) -> Boolean,
+    modifier: Modifier = Modifier
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(16.dp)
     ) {

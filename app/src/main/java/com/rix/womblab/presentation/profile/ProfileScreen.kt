@@ -1,6 +1,5 @@
 package com.rix.womblab.presentation.profile
 
-import android.R.attr.fontWeight
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -11,8 +10,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,7 +42,6 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val pullToRefreshState = rememberPullToRefreshState()
 
     LaunchedEffect(uiState.logoutSuccess) {
         if (uiState.logoutSuccess) {
@@ -64,8 +60,10 @@ fun ProfileScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text(text = stringResource(id = R.string.profile_title), fontWeight = FontWeight.Bold)
-
+                    Text(
+                        text = stringResource(id = R.string.profile_title),
+                        fontWeight = FontWeight.Bold
+                    )
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color.Transparent
@@ -73,33 +71,22 @@ fun ProfileScreen(
             )
         }
     ) { paddingValues ->
-        PullToRefreshBox(
-            isRefreshing = uiState.isLoading,
-            onRefresh = { viewModel.refreshProfile() },
-            state = pullToRefreshState,
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
             when {
                 uiState.isLoading && uiState.user == null -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        LoadingIndicator()
-                    }
+                    LoadingIndicator(modifier = Modifier.align(Alignment.Center))
                 }
 
                 uiState.error != null && uiState.user == null -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        ErrorMessage(
-                            message = uiState.error ?: stringResource(id = R.string.unknown_error),
-                            onRetryClick = { viewModel.refreshProfile() }
-                        )
-                    }
+                    ErrorMessage(
+                        message = uiState.error ?: stringResource(id = R.string.unknown_error),
+                        onRetryClick = { viewModel.refreshProfile() },
+                        modifier = Modifier.align(Alignment.Center)
+                    )
                 }
 
                 else -> {
