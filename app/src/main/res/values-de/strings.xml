@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WombLab</string>
+
+    <!-- General -->
+    <string name="user">Benutzer</string>
+    <string name="loading">wird geladen</string>
+    <string name="upload">Aktualisieren</string>
+    <string name="retry">Erneut versuchen</string>
+    <string name="delete">Löschen</string>
+    <string name="options">Optionen</string>
+    <string name="back">Zurück</string>
+    <string name="events">Veranstaltungen</string>
+    <string name="label_loading">scale</string>
+    <string name="emoji_calendar">📅</string>
+
+    <!-- Error -->
+    <string name="unknown_error">Unbekannter Fehler</string>
+    <string name="error_impossible_load_data">Veranstaltungen konnten nicht geladen werden. Überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.</string>
+    <string name="error_connect">Verbindungsfehler</string>
+    <string name="error_ops">Ups! Etwas ist schiefgelaufen</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_reminders">Veranstaltungserinnerungen</string>
+    <string name="notification_channel_new_events">Neue Veranstaltungen</string>
+    <string name="notification_channel_reminders_desc">Erinnerungen für in Favoriten gespeicherte Veranstaltungen</string>
+    <string name="notification_channel_new_events_desc">Benachrichtigungen, wenn neue Veranstaltungen veröffentlicht werden</string>
+    <string name="notification_new_event_title">🆕 Neue Veranstaltung verfügbar</string>
+    <string name="notification_new_events_title">🆕 Neue Veranstaltungen verfügbar</string>
+    <string name="notification_reminder_24h">📅 Veranstaltung morgen</string>
+    <string name="notification_reminder_1h">⏰ Veranstaltung in 1 Stunde</string>
+    <string name="notification_reminder_15m">🔔 Veranstaltung in 15 Minuten</string>
+    <string name="notification_favorite_added">⭐ Veranstaltung gespeichert</string>
+    <string name="notification_favorite_removed">💔 Veranstaltung entfernt</string>
+
+    <!-- Notification Screen -->
+    <string name="notifications_title">Benachrichtigungen</string>
+    <string name="notifications_emoji">🔔</string>
+    <string name="notifications_empty_title">Keine Benachrichtigungen</string>
+    <string name="notifications_empty_message">Ihre Benachrichtigungen werden hier angezeigt</string>
+    <string name="notifications_dropmenu">Als gelesen markieren</string>
+    <string name="notifications_mark_all_read">Alle als gelesen markieren</string>
+    <string name="notifications_clear_old">Alte Benachrichtigungen löschen</string>
+    <string name="notifications_loading">Benachrichtigungen werden geladen...</string>
+    <string name="notifications_nothing">Keine Benachrichtigungen</string>
+    <string name="notifications_animated_rotation">Rotation</string>
+    <string name="notifications_no_new_events">Ihre Benachrichtigungen werden hier angezeigt, wenn es Updates zu Ihren Veranstaltungen gibt</string>
+
+    <!-- Time formatting -->
+    <string name="time_now">Jetzt</string>
+    <string name="time_minutes_ago">%dm</string>
+    <string name="time_hours_ago">%dh</string>
+    <string name="time_days_ago">%dg</string>
+
+    <!-- Date groups -->
+    <string name="date_today">Heute</string>
+    <string name="date_yesterday">Gestern</string>
+    <string name="date_this_week">Diese Woche</string>
+    <string name="date_this_month">Dieser Monat</string>
+    <string name="date_older">Ältere</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_title">Profil</string>
+    <string name="logout_confirmation_title">Abmeldebestätigung</string>
+    <string name="logout_confirmation_message">Sind Sie sicher, dass Sie sich von der App abmelden möchten?</string>
+    <string name="logout_confirmation_submessage">Sie müssen sich erneut anmelden, um die App zu verwenden.</string>
+    <string name="logging_out">Abmelden...</string>
+    <string name="logout">Abmelden</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="content_description_profile_image">Profilfoto</string>
+    <string name="content_description_logo_image">WombLab-Logo</string>
+    <string name="saved_events">Gespeicherte Veranstaltungen</string>
+    <string name="label_womblab_app">WombLab</string>
+    <string name="professional_info">Berufliche Informationen</string>
+    <string name="specialization">Spezialisierung</string>
+    <string name="workplace">Arbeitsort</string>
+    <string name="city">Stadt</string>
+    <string name="phone">Telefon</string>
+    <string name="app_description">Ihre App für Schulungsveranstaltungen</string>
+    <string name="app_version">Version 1.0.0</string>
+
+    <!-- Splash Screen -->
+    <string name="splash_message">Professionelle Schulungsveranstaltungen</string>
+
+    <!-- Home Screen -->
+    <string name="home_title">Veranstaltungen</string>
+    <string name="home_emoji">🔬</string>
+    <string name="home_search_title">Ergebnisse für</string>
+    <string name="home_search_description">Veranstaltungen gefunden</string>
+    <string name="home_search_emoji">🔍</string>
+    <string name="home_nothing_events">Keine Veranstaltungen gefunden</string>
+    <string name="home_nothing_events_description">Versuchen Sie andere Schlüsselwörter</string>
+    <string name="home_events_header">verfügbare Veranstaltungen</string>
+    <string name="home_favourite">Ihre gespeicherten Veranstaltungen</string>
+    <string name="home_events">Empfohlene Veranstaltungen</string>
+    <string name="home_events_for_you">Für Sie ausgewählt</string>
+    <string name="home_next_events">Kommende Veranstaltungen</string>
+    <string name="home_nothing_events_program">Keine Veranstaltungen geplant</string>
+    <string name="home_nothing_events_program_description">Später nach neuen Veranstaltungen suchen</string>
+    <string name="home_nothing_events_program_emoji">📅</string>
+    <string name="home_view_all_events">Sie haben alle Veranstaltungen angesehen!</string>
+
+    <!-- Card Event -->
+    <string name="card_event_star">★</string>
+    <string name="card_event_remove_star">Aus Favoriten entfernen</string>
+    <string name="card_event_added_star">Zu Favoriten hinzugefügt</string>
+    <string name="card_event_featuredBadge">featuredBadge</string>
+    <string name="card_event_featuredBadge_label">shimmer</string>
+    <string name="card_event_featured">⭐ Hervorgehoben</string>
+
+    <!-- Detail Event -->
+    <string name="detail_event_title">Veranstaltungsdetails</string>
+    <string name="detail_event_emoji_event_title">🎯</string>
+    <string name="detail_event_emoji_event_date">📅 Datum:</string>
+    <string name="detail_event_emoji_event_city">📍 Ort:</string>
+    <string name="detail_event_emoji_event_subscribt">🔗 Registrieren:</string>
+    <string name="detail_event_emoji_event_info">🔗 Info:</string>
+    <string name="detail_event_shared">Veranstaltung teilen</string>
+    <string name="detail_event_info_title">Veranstaltungsinformationen</string>
+    <string name="detail_event_presentation_title">Präsentation</string>
+    <string name="detail_event_profession_title">Berufe und Fachgebiete</string>
+    <string name="detail_event_place_title">Veranstaltungsort</string>
+    <string name="detail_event_feature">Hervorgehoben</string>
+    <string name="detail_event_date_title">Datum und Uhrzeit</string>
+    <string name="detail_event_website_title">Webseite des Veranstaltungsorts</string>
+    <string name="detail_event_organization_title">Organisatoren</string>
+    <string name="detail_event_categories_title">Kategorien</string>
+    <string name="detail_event_subscript">Für die Veranstaltung registrieren</string>
+
+    <!-- Empty State -->
+    <string name="events_loading">Veranstaltungen werden geladen...</string>
+    <string name="nothing_events_program_description">Zurzeit sind keine Veranstaltungen verfügbar. Schauen Sie später nach Updates.</string>
+
+    <!-- Loading Indicator -->
+    <string name="loading_indicator_message">Wird geladen...</string>
+    <string name="search_events">Veranstaltungen suchen</string>
+    <string name="search_events_label">Veranstaltungen suchen...</string>
+    <string name="remove_search">Suche löschen</string>
+    <string name="close_search">Suche schließen</string>
+
+    <!-- Calendar Screen -->
+    <string name="calendar_title">Veranstaltungskalender</string>
+    <string name="month_pre">Vorheriger Monat</string>
+    <string name="month_post">Nächster Monat</string>
+    <string name="calendar_nothing_events_program_description">Für dieses Datum sind keine Veranstaltungen geplant</string>
+
+    <!-- Navigator -->
+    <string name="label_home">Startseite</string>
+    <string name="label_calendar">Kalender</string>
+    <string name="label_profile">Profil</string>
+
+    <!-- Edit Profile Screen -->
+    <string name="edit_profile_title">Profil bearbeiten</string>
+    <string name="edit_profile">Profil bearbeiten</string>
+    <string name="personal_info">Persönliche Informationen</string>
+    <string name="preferences">Einstellungen</string>
+
+    <!-- Form Fields -->
+    <string name="first_name">Vorname</string>
+    <string name="last_name">Nachname</string>
+    <string name="phone_optional">Telefon (optional)</string>
+    <string name="city_optional">Stadt (optional)</string>
+    <string name="profession">Beruf</string>
+    <string name="specialization_optional">Spezialisierung (optional)</string>
+    <string name="workplace_optional">Arbeitsort (optional)</string>
+
+    <!-- Preferences -->
+    <string name="newsletter_subscription">Newsletter</string>
+    <string name="newsletter_description">Erhalten Sie Updates zu neuen Veranstaltungen</string>
+    <string name="push_notifications">Push-Benachrichtigungen</string>
+    <string name="notifications_description">Erhalten Sie Erinnerungen für gespeicherte Veranstaltungen</string>
+
+    <!-- Actions -->
+    <string name="save">Speichern</string>
+    <string name="or">  oder  </string>
+    <string name="no_account">Noch kein Konto? </string>
+    <string name="yes_account">Haben Sie ein Konto? </string>
+    <string name="register">Registrieren</string>
+    <string name="policy">Durch die Anmeldung stimmen Sie unseren Nutzungsbedingungen und der Datenschutzrichtlinie zu</string>
+    <string name="email">E-Mail</string>
+    <string name="password">Passwort</string>
+    <string name="confirm_password">Passwort bestätigen</string>
+    <string name="enable_password">Passwort anzeigen</string>
+    <string name="unable_password">Passwort verbergen</string>
+    <string name="different_password">Passwörter stimmen nicht überein</string>
+    <string name="login">Anmelden</string>
+    <string name="sign_up">Registrierung</string>
+    <string name="make_account">Erstellen Sie Ihr Konto</string>
+    <string name="sign_up_womblab">Registrieren Sie sich, um auf WombLab zuzugreifen</string>
+    <string name="name">Name</string>
+    <string name="surname">Nachname</string>
+
+    <!-- Google -->
+    <string name="google_logo">Google-Logo</string>
+    <string name="login_google">Mit Google fortfahren</string>
+</resources>
