@@ -148,4 +148,28 @@
     <string name="label_home">Home</string>
     <string name="label_calendar">Calendario</string>
     <string name="label_profile">Profilo</string>
+
+    <!-- Edit Profile Screen -->
+    <string name="edit_profile_title">Modifica Profilo</string>
+    <string name="edit_profile">Modifica profilo</string>
+    <string name="personal_info">Informazioni Personali</string>
+    <string name="preferences">Preferenze</string>
+
+    <!-- Form Fields -->
+    <string name="first_name">Nome</string>
+    <string name="last_name">Cognome</string>
+    <string name="phone_optional">Telefono (opzionale)</string>
+    <string name="city_optional">Città (opzionale)</string>
+    <string name="profession">Professione</string>
+    <string name="specialization_optional">Specializzazione (opzionale)</string>
+    <string name="workplace_optional">Luogo di lavoro (opzionale)</string>
+
+    <!-- Preferences -->
+    <string name="newsletter_subscription">Newsletter</string>
+    <string name="newsletter_description">Ricevi aggiornamenti sui nuovi eventi</string>
+    <string name="push_notifications">Notifiche push</string>
+    <string name="notifications_description">Ricevi promemoria per gli eventi salvati</string>
+
+    <!-- Actions -->
+    <string name="save">Salva</string>
 </resources>

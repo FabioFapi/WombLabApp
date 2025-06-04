@@ -11,6 +11,7 @@ sealed class Screen(val route: String) {
     data object Home : Screen("home")
     data object Calendar : Screen("calendar")
     data object Profile : Screen("profile")
+    data object EditProfile : Screen("edit_profile")
     data object Notifications : Screen("notifications")
     data object EventDetail : Screen("event_detail/{eventId}") {
         fun createRoute(eventId: String) = "event_detail/$eventId"
@@ -27,6 +28,7 @@ object NavigationRoutes {
     const val HOME = "home"
     const val CALENDAR = "calendar"
     const val PROFILE = "profile"
+    const val EDIT_PROFILE = "edit_profile"
     const val EVENT_DETAIL = "event_detail"
     const val NOTIFICATIONS = "notifications"
 }

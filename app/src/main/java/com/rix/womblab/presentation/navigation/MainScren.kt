@@ -23,6 +23,7 @@ import com.rix.womblab.presentation.calendar.CalendarScreen
 import com.rix.womblab.presentation.detail.EventDetailScreen
 import com.rix.womblab.presentation.home.HomeScreen
 import com.rix.womblab.presentation.notifications.NotificationsScreen
+import com.rix.womblab.presentation.profile.EditProfileScreen
 import com.rix.womblab.presentation.profile.ProfileScreen
 import kotlin.math.abs
 
@@ -52,7 +53,7 @@ fun MainScreen(
 
     Scaffold(
         bottomBar = {
-            if (currentDestination?.route != Screen.EventDetail.route && currentDestination?.route != Screen.Notifications.route) {
+            if (currentDestination?.route != Screen.EventDetail.route && currentDestination?.route != Screen.Notifications.route && currentDestination?.route != Screen.EditProfile.route) {
                 ProfessionalNavigationBar(
                     currentDestination = currentDestination,
                     currentTabIndex = currentTabIndex,
@@ -222,10 +223,43 @@ fun MainScreen(
                     )
                 }
 
-                composable(Screen.Profile.route) {
+                composable(Screen.Profile.route) { backStackEntry ->
+                    val profileUpdated = navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.get<Boolean>("profile_updated") ?: false
+
+                    if (profileUpdated) {
+                        navController.currentBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("profile_updated", false)
+                    }
+
                     ProfileScreen(
                         onLogoutSuccess = {
                             onLogout()
+                        },
+                        onNavigateToEditProfile = {
+                            navController.navigate(Screen.EditProfile.route)
+                        }
+                    )
+                }
+
+                composable(
+                    route = Screen.EditProfile.route,
+                    enterTransition = {
+                        slideInHorizontally(initialOffsetX = { it }) + fadeIn()
+                    },
+                    exitTransition = {
+                        slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
+                    }
+                ) {
+                    EditProfileScreen(
+                        onNavigateBack = { navController.popBackStack() },
+                        onProfileUpdated = {
+                            navController.previousBackStackEntry
+                                ?.savedStateHandle
+                                ?.set("profile_updated", true)
+                            navController.popBackStack()
                         }
                     )
                 }

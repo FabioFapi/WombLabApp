@@ -95,10 +95,8 @@ class ProfileViewModel @Inject constructor(
                         )
                     }
                     is Resource.Error -> {
-
                     }
                     is Resource.Loading -> {
-
                     }
                 }
             }
@@ -135,7 +133,6 @@ class ProfileViewModel @Inject constructor(
                     )
                 }
                 is Resource.Loading -> {
-
                 }
             }
         }
@@ -151,5 +148,18 @@ class ProfileViewModel @Inject constructor(
 
     fun clearLogoutSuccess() {
         _uiState.value = _uiState.value.copy(logoutSuccess = false)
+    }
+
+    fun onProfileUpdated() {
+        viewModelScope.launch {
+            try {
+                val updatedProfile = preferencesUtils.getUserProfile()
+                _uiState.value = _uiState.value.copy(
+                    userProfile = updatedProfile
+                )
+            } catch (e: Exception) {
+                android.util.Log.e("ProfileViewModel", "Errore aggiornamento profilo", e)
+            }
+        }
     }
 }

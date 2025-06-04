@@ -39,9 +39,14 @@ import com.rix.womblab.R
 @Composable
 fun ProfileScreen(
     onLogoutSuccess: () -> Unit = {},
+    onNavigateToEditProfile: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.refreshProfile()
+    }
 
     LaunchedEffect(uiState.logoutSuccess) {
         if (uiState.logoutSuccess) {
@@ -93,6 +98,7 @@ fun ProfileScreen(
                     ProfileContent(
                         uiState = uiState,
                         onShowLogoutDialog = viewModel::showLogoutDialog,
+                        onNavigateToEditProfile = onNavigateToEditProfile,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -200,6 +206,7 @@ private fun LogoutConfirmationDialog(
 private fun ProfileContent(
     uiState: ProfileUiState,
     onShowLogoutDialog: () -> Unit,
+    onNavigateToEditProfile: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -216,10 +223,18 @@ private fun ProfileContent(
     ) {
         ProfileHeader(
             user = uiState.user,
-            userProfile = uiState.userProfile
+            userProfile = uiState.userProfile,
+            onEditClick = onNavigateToEditProfile
         )
 
         Spacer(modifier = Modifier.height(24.dp))
+
+        uiState.userProfile?.let { profile ->
+            if (hasProfileData(profile)) {
+                ProfileInfoSection(userProfile = profile)
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
 
         StatsSection(
             favoriteEventsCount = uiState.favoriteEventsCount
@@ -239,12 +254,13 @@ private fun ProfileContent(
 @Composable
 private fun ProfileHeader(
     user: com.rix.womblab.domain.model.User?,
-    userProfile: com.rix.womblab.presentation.auth.register.UserProfile?
+    userProfile: com.rix.womblab.presentation.auth.register.UserProfile?,
+    onEditClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding (12.dp),
+            .padding(12.dp),
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         colors = CardDefaults.cardColors(
@@ -257,18 +273,36 @@ private fun ProfileHeader(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(user?.photoUrl ?: "")
-                    .crossfade(true)
-                    .build(),
-                contentDescription = stringResource(id = R.string.content_description_profile_image),
-                modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentScale = ContentScale.Crop
-            )
+            Box {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(user?.photoUrl ?: "")
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = stringResource(id = R.string.content_description_profile_image),
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentScale = ContentScale.Crop
+                )
+
+                // Edit button overlay
+                FloatingActionButton(
+                    onClick = onEditClick,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .size(32.dp),
+                    containerColor = MaterialTheme.colorScheme.primary
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = stringResource(id = R.string.edit_profile),
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -309,6 +343,107 @@ private fun ProfileHeader(
                     )
                 )
             }
+        }
+    }
+}
+
+private fun hasProfileData(userProfile: com.rix.womblab.presentation.auth.register.UserProfile): Boolean {
+    return userProfile.specialization?.isNotEmpty() == true ||
+            userProfile.workplace?.isNotEmpty() == true ||
+            userProfile.city?.isNotEmpty() == true ||
+            userProfile.phone?.isNotEmpty() == true
+}
+
+@Composable
+private fun ProfileInfoSection(
+    userProfile: com.rix.womblab.presentation.auth.register.UserProfile
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.professional_info),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            userProfile.specialization?.let { specialization ->
+                InfoRow(
+                    icon = Icons.Default.School,
+                    label = stringResource(id = R.string.specialization),
+                    value = specialization
+                )
+            }
+
+            userProfile.workplace?.let { workplace ->
+                InfoRow(
+                    icon = Icons.Default.Business,
+                    label = stringResource(id = R.string.workplace),
+                    value = workplace
+                )
+            }
+
+            userProfile.city?.let { city ->
+                InfoRow(
+                    icon = Icons.Default.LocationOn,
+                    label = stringResource(id = R.string.city),
+                    value = city
+                )
+            }
+
+            userProfile.phone?.let { phone ->
+                InfoRow(
+                    icon = Icons.Default.Phone,
+                    label = stringResource(id = R.string.phone),
+                    value = phone
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun InfoRow(
+    icon: ImageVector,
+    label: String,
+    value: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(20.dp)
+        )
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = value,
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Medium
+            )
         }
     }
 }
@@ -379,102 +514,6 @@ private fun StatItem(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
-    }
-}
-
-@Composable
-private fun ProfileInfoSection(
-    userProfile: com.rix.womblab.presentation.auth.register.UserProfile?
-) {
-    if (userProfile == null) return
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp)
-        ) {
-            Text(
-                text = stringResource(id = R.string.professional_info),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            userProfile.specialization?.let { specialization ->
-                InfoRow(
-                    icon = Icons.Default.Work,
-                    label = stringResource(id = R.string.specialization),
-                    value = specialization
-                )
-            }
-
-            userProfile.workplace?.let { workplace ->
-                InfoRow(
-                    icon = Icons.Default.Business,
-                    label = stringResource(id = R.string.workplace),
-                    value = workplace
-                )
-            }
-
-            userProfile.city?.let { city ->
-                InfoRow(
-                    icon = Icons.Default.LocationOn,
-                    label = stringResource(id = R.string.city),
-                    value = city
-                )
-            }
-
-            userProfile.phone?.let { phone ->
-                InfoRow(
-                    icon = Icons.Default.Phone,
-                    label = stringResource(id = R.string.phone),
-                    value = phone
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun InfoRow(
-    icon: ImageVector,
-    label: String,
-    value: String
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(20.dp)
-        )
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = label,
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = value,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Medium
-            )
-        }
     }
 }
 
