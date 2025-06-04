@@ -172,4 +172,25 @@
 
     <!-- Actions -->
     <string name="save">Salva</string>
+    <string name="or">  oppure  </string>
+    <string name="no_account">Non hai un account? </string>
+    <string name="yes_account">Hai un account? </string>
+    <string name="register">Registrati</string>
+    <string name="policy">Accedendo accetti i nostri Termini di Servizio e la Privacy Policy</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Conferma Password</string>
+    <string name="enable_password">Mostra password</string>
+    <string name="unable_password">Nascondi password</string>
+    <string name="different_password">Le password non corrispondono</string>
+    <string name="login">Accedi</string>
+    <string name="sign_up">Registrazione</string>
+    <string name="make_account">Crea il tuo account</string>
+    <string name="sign_up_womblab">Registrati per accedere a WombLab</string>
+    <string name="name">Nome</string>
+    <string name="surname">Cognome</string>
+
+    <!-- Google -->
+    <string name="google_logo">Google Logo</string>
+    <string name="login_google">Continua con Google</string>
 </resources>

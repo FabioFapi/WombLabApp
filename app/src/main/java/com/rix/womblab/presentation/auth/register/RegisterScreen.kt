@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -80,12 +81,12 @@ fun RegisterScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Registrazione") },
+                title = { Text(stringResource(id = R.string.sign_up), color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Indietro",
+                            contentDescription = stringResource(id = R.string.back),
                             tint = Color.White
                         )
                     }
@@ -132,7 +133,7 @@ fun RegisterScreen(
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.womblab_logo),
-                            contentDescription = "WombLab Logo",
+                            contentDescription = stringResource(id = R.string.content_description_logo_image),
                             modifier = Modifier
                                 .size(80.dp)
                                 .clip(CircleShape),
@@ -144,7 +145,7 @@ fun RegisterScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    text = "Crea il tuo account",
+                    text = stringResource(id = R.string.make_account),
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
@@ -154,7 +155,7 @@ fun RegisterScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Registrati per accedere a WombLab",
+                    text = stringResource(id = R.string.sign_up_womblab),
                     fontSize = 16.sp,
                     color = Color.White.copy(alpha = 0.8f),
                     textAlign = TextAlign.Center
@@ -169,7 +170,7 @@ fun RegisterScreen(
                     OutlinedTextField(
                         value = firstName,
                         onValueChange = { firstName = it },
-                        label = { Text("Nome") },
+                        label = { Text(stringResource(id = R.string.name)) },
                         leadingIcon = {
                             Icon(Icons.Default.Person, contentDescription = null)
                         },
@@ -197,7 +198,7 @@ fun RegisterScreen(
                     OutlinedTextField(
                         value = lastName,
                         onValueChange = { lastName = it },
-                        label = { Text("Cognome") },
+                        label = { Text(stringResource(id = R.string.surname)) },
                         modifier = Modifier.weight(1f),
                         keyboardOptions = KeyboardOptions(
                             imeAction = ImeAction.Next
@@ -223,7 +224,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = { Text("Email") },
+                    label = { Text(stringResource(id = R.string.email)) },
                     leadingIcon = {
                         Icon(Icons.Default.Email, contentDescription = null)
                     },
@@ -254,7 +255,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Password") },
+                    label = { Text(stringResource(id = R.string.password)) },
                     leadingIcon = {
                         Icon(Icons.Default.Lock, contentDescription = null)
                     },
@@ -262,7 +263,7 @@ fun RegisterScreen(
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
                                 imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                contentDescription = if (passwordVisible) "Nascondi password" else "Mostra password",
+                                contentDescription = if (passwordVisible) stringResource(id = R.string.unable_password) else stringResource(id = R.string.enable_password),
                                 tint = Color.White.copy(alpha = 0.7f)
                             )
                         }
@@ -295,7 +296,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it },
-                    label = { Text("Conferma Password") },
+                    label = { Text(stringResource(id = R.string.confirm_password)) },
                     leadingIcon = {
                         Icon(Icons.Default.Lock, contentDescription = null)
                     },
@@ -303,7 +304,7 @@ fun RegisterScreen(
                         IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
                             Icon(
                                 imageVector = if (confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                contentDescription = if (confirmPasswordVisible) "Nascondi password" else "Mostra password",
+                                contentDescription = if (confirmPasswordVisible) stringResource(id = R.string.unable_password) else stringResource(id = R.string.enable_password),
                                 tint = Color.White.copy(alpha = 0.7f)
                             )
                         }
@@ -340,7 +341,7 @@ fun RegisterScreen(
                 if (confirmPassword.isNotEmpty() && password != confirmPassword) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Le password non corrispondono",
+                        text = stringResource(id = R.string.different_password),
                         color = Color.Red.copy(alpha = 0.8f),
                         fontSize = 12.sp,
                         modifier = Modifier.fillMaxWidth()
@@ -366,7 +367,7 @@ fun RegisterScreen(
                     shape = RoundedCornerShape(28.dp),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                 ) {
-                    if (uiState.isLoading && uiState.registrationMethod == "email") {
+                    if (uiState.isLoading && uiState.registrationMethod == stringResource(id = R.string.email)) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
                             color = Color(0xFF006B5B),
@@ -374,7 +375,7 @@ fun RegisterScreen(
                         )
                     } else {
                         Text(
-                            text = "Registrati",
+                            text = stringResource(id = R.string.register),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -392,7 +393,7 @@ fun RegisterScreen(
                         color = Color.White.copy(alpha = 0.5f)
                     )
                     Text(
-                        text = "  oppure  ",
+                        text = stringResource(id = R.string.or),
                         color = Color.White.copy(alpha = 0.7f),
                         fontSize = 14.sp
                     )
@@ -433,7 +434,7 @@ fun RegisterScreen(
                         ) {
                             Image(
                                 painter = painterResource(id = R.drawable.google_logo),
-                                contentDescription = "Google Logo",
+                                contentDescription = stringResource(id = R.string.google_logo),
                                 modifier = Modifier
                                     .size(50.dp)
                                     .clip(CircleShape),
@@ -443,7 +444,7 @@ fun RegisterScreen(
                             Spacer(modifier = Modifier.width(12.dp))
 
                             Text(
-                                text = "Registrati con Google",
+                                text = stringResource(id = R.string.login_google),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -458,12 +459,12 @@ fun RegisterScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Hai già un account? ",
+                        text = stringResource(id = R.string.yes_account),
                         color = Color.White.copy(alpha = 0.8f),
                         fontSize = 14.sp
                     )
                     Text(
-                        text = "Accedi",
+                        text = stringResource(id = R.string.login),
                         color = Color.White,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
@@ -495,7 +496,7 @@ fun RegisterScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    text = "Registrandoti accetti i nostri Termini di Servizio e la Privacy Policy",
+                    text = stringResource(id = R.string.policy),
                     fontSize = 12.sp,
                     color = Color.White.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center,
