@@ -38,7 +38,6 @@ class CalendarViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(CalendarUiState())
     val uiState: StateFlow<CalendarUiState> = _uiState.asStateFlow()
 
-    private val parsedDatesCache = mutableMapOf<String, LocalDate?>()
     private val eventsByDateCache = mutableMapOf<LocalDate, List<Event>>()
     private var cacheBuilt = false
 
@@ -85,7 +84,6 @@ class CalendarViewModel @Inject constructor(
                     is Resource.Success -> {
                         val favoriteIds = resource.data?.map { it.id }?.toSet() ?: emptySet()
                         _uiState.value = _uiState.value.copy(favoriteIds = favoriteIds)
-
                         updateEventsWithFavorites()
                     }
                     is Resource.Error -> {
@@ -120,18 +118,7 @@ class CalendarViewModel @Inject constructor(
 
     private fun rebuildCacheWithUpdatedEvents(events: List<Event>) {
         eventsByDateCache.clear()
-
-        val eventsByDate = mutableMapOf<LocalDate, MutableList<Event>>()
-
-        events.forEach { event ->
-            parsedDatesCache[event.id]?.let { parsedDate ->
-                eventsByDate.getOrPut(parsedDate) { mutableListOf() }.add(event)
-            }
-        }
-
-        eventsByDate.forEach { (date, eventList) ->
-            eventsByDateCache[date] = eventList.toList()
-        }
+        buildOptimizedCache(events)
     }
 
     private fun loadEvents() {
@@ -143,15 +130,11 @@ class CalendarViewModel @Inject constructor(
                     when (resource) {
                         is Resource.Success -> {
                             val events = resource.data ?: emptyList()
+                            val eventsWithFavorites = updateEventsWithFavoriteStatus(events)
 
-                            val favoriteIds = _uiState.value.favoriteIds
-                            val eventsWithFavorites = events.map { event ->
-                                event.copy(isFavorite = favoriteIds.contains(event.id))
-                            }
+                            buildOptimizedCache(eventsWithFavorites)
 
-                            buildCacheSafe(eventsWithFavorites)
-
-                            val eventsForSelectedDate = getEventsForDateSafe(_uiState.value.selectedDate, eventsWithFavorites)
+                            val eventsForSelectedDate = getEventsForDate(_uiState.value.selectedDate)
 
                             _uiState.value = _uiState.value.copy(
                                 events = eventsWithFavorites,
@@ -179,71 +162,67 @@ class CalendarViewModel @Inject constructor(
         }
     }
 
-    private fun buildCacheSafe(events: List<Event>) {
+    private fun buildOptimizedCache(events: List<Event>) {
         try {
-            if (cacheBuilt && parsedDatesCache.size == events.size) {
-                return
-            }
-
-            parsedDatesCache.clear()
             eventsByDateCache.clear()
 
             events.forEach { event ->
                 try {
-                    val extractedDate = extractDateFromDescriptionSafe(event.description)
-                    parsedDatesCache[event.id] = extractedDate
+                    val parsedDate = extractDateFromDescription(event.description)
+
+                    val eventDate = parsedDate ?: event.startDate.toLocalDate()
+
+                    val existingEvents = eventsByDateCache[eventDate] ?: emptyList()
+                    eventsByDateCache[eventDate] = existingEvents + event
+
                 } catch (e: Exception) {
-                    parsedDatesCache[event.id] = null
-                }
-            }
-
-            val eventsByDate = mutableMapOf<LocalDate, MutableList<Event>>()
-
-            events.forEach { event ->
-                try {
-                    parsedDatesCache[event.id]?.let { parsedDate ->
-                        eventsByDate.getOrPut(parsedDate) { mutableListOf() }.add(event)
+                    try {
+                        val fallbackDate = event.startDate.toLocalDate()
+                        val existingEvents = eventsByDateCache[fallbackDate] ?: emptyList()
+                        eventsByDateCache[fallbackDate] = existingEvents + event
+                    } catch (ex: Exception) {
                     }
-                } catch (e: Exception) {
                 }
-            }
-
-            eventsByDate.forEach { (date, eventList) ->
-                eventsByDateCache[date] = eventList.toList()
             }
 
             cacheBuilt = true
+
         } catch (e: Exception) {
-            parsedDatesCache.clear()
-            eventsByDateCache.clear()
-            cacheBuilt = false
+            buildSimpleCache(events)
+        }
+    }
+
+    private fun buildSimpleCache(events: List<Event>) {
+        eventsByDateCache.clear()
+        events.forEach { event ->
+            try {
+                val date = event.startDate.toLocalDate()
+                val existingEvents = eventsByDateCache[date] ?: emptyList()
+                eventsByDateCache[date] = existingEvents + event
+            } catch (e: Exception) {
+            }
+        }
+        cacheBuilt = true
+    }
+
+    private fun updateEventsWithFavoriteStatus(events: List<Event>): List<Event> {
+        val favoriteIds = _uiState.value.favoriteIds
+        return events.map { event ->
+            event.copy(isFavorite = favoriteIds.contains(event.id))
         }
     }
 
     fun onDateSelected(date: LocalDate) {
         try {
-            val eventsForDate = if (cacheBuilt && eventsByDateCache.containsKey(date)) {
-                eventsByDateCache[date] ?: emptyList()
-            } else {
-                getEventsForDateSafe(date, _uiState.value.events)
-            }
-
+            val eventsForDate = getEventsForDate(date)
             _uiState.value = _uiState.value.copy(
                 selectedDate = date,
                 eventsForSelectedDate = eventsForDate
             )
         } catch (e: Exception) {
-            val fallbackEvents = _uiState.value.events.filter { event ->
-                try {
-                    event.startDate.toLocalDate() == date
-                } catch (ex: Exception) {
-                    false
-                }
-            }
-
             _uiState.value = _uiState.value.copy(
                 selectedDate = date,
-                eventsForSelectedDate = fallbackEvents,
+                eventsForSelectedDate = emptyList(),
                 error = "Problema caricamento eventi per data selezionata"
             )
         }
@@ -269,13 +248,10 @@ class CalendarViewModel @Inject constructor(
                         }
 
                         _uiState.value = _uiState.value.copy(favoriteIds = updatedFavoriteIds)
-
-                        updateEventFavoriteStatusSafe(eventId, isFavorite)
+                        updateEventFavoriteStatus(eventId, isFavorite)
                     }
                     is Resource.Error -> {
-                        _uiState.value = _uiState.value.copy(
-                            error = result.message
-                        )
+                        _uiState.value = _uiState.value.copy(error = result.message)
                     }
                     is Resource.Loading -> {
                     }
@@ -288,7 +264,7 @@ class CalendarViewModel @Inject constructor(
         }
     }
 
-    private fun updateEventFavoriteStatusSafe(eventId: String, isFavorite: Boolean) {
+    private fun updateEventFavoriteStatus(eventId: String, isFavorite: Boolean) {
         try {
             val updatedEvents = _uiState.value.events.map { event ->
                 if (event.id == eventId) event.copy(isFavorite = isFavorite) else event
@@ -304,51 +280,34 @@ class CalendarViewModel @Inject constructor(
             )
 
             if (cacheBuilt) {
-                val eventDate = parsedDatesCache[eventId]
-                eventDate?.let { date ->
-                    val cachedEvents = eventsByDateCache[date]
-                    if (cachedEvents != null) {
-                        val updatedCachedEvents = cachedEvents.map { event ->
-                            if (event.id == eventId) event.copy(isFavorite = isFavorite) else event
-                        }
-                        eventsByDateCache[date] = updatedCachedEvents
+                eventsByDateCache.forEach { (date, events) ->
+                    val updatedEvents = events.map { event ->
+                        if (event.id == eventId) event.copy(isFavorite = isFavorite) else event
                     }
+                    eventsByDateCache[date] = updatedEvents
                 }
             }
         } catch (e: Exception) {
-            _uiState.value = _uiState.value.copy(
-                error = "Errore aggiornamento stato preferito"
-            )
+            _uiState.value = _uiState.value.copy(error = "Errore aggiornamento stato preferito")
         }
     }
 
-    private fun getEventsForDateSafe(date: LocalDate, events: List<Event>): List<Event> {
+    fun getEventsForDate(date: LocalDate): List<Event> {
         return try {
             if (cacheBuilt) {
                 eventsByDateCache[date] ?: emptyList()
             } else {
-                events.filter { event ->
+                _uiState.value.events.filter { event ->
                     try {
-                        val cachedDate = parsedDatesCache[event.id]
-                        cachedDate == date
+                        event.startDate.toLocalDate() == date
                     } catch (e: Exception) {
                         false
                     }
                 }
             }
         } catch (e: Exception) {
-            events.filter { event ->
-                try {
-                    event.startDate.toLocalDate() == date
-                } catch (ex: Exception) {
-                    false
-                }
-            }
+            emptyList()
         }
-    }
-
-    fun getEventsForDate(date: LocalDate): List<Event> {
-        return getEventsForDateSafe(date, _uiState.value.events)
     }
 
     fun hasEventsOnDate(date: LocalDate): Boolean {
@@ -358,38 +317,33 @@ class CalendarViewModel @Inject constructor(
             } else {
                 _uiState.value.events.any { event ->
                     try {
-                        parsedDatesCache[event.id] == date
+                        event.startDate.toLocalDate() == date
                     } catch (e: Exception) {
                         false
                     }
                 }
             }
         } catch (e: Exception) {
-            _uiState.value.events.any { event ->
-                try {
-                    event.startDate.toLocalDate() == date
-                } catch (ex: Exception) {
-                    false
-                }
-            }
+            false
         }
     }
 
-    private fun extractDateFromDescriptionSafe(description: String): LocalDate? {
+    private fun extractDateFromDescription(description: String): LocalDate? {
         return try {
-            when {
-                description.contains("Dal") -> parseWombLabDateSafe(description)
-                description.contains("/") -> parseSlashDateSafe(description)
-                monthNames.keys.any { description.contains(it, ignoreCase = true) } ->
-                    parseItalianDateSafe(description)
-                else -> null
-            }
+            parseWombLabDate(description)?.let { return it }
+
+            parseSlashDate(description)?.let { return it }
+
+            parseItalianDate(description)?.let { return it }
+
+            null
+
         } catch (e: Exception) {
             null
         }
     }
 
-    private fun parseWombLabDateSafe(description: String): LocalDate? {
+    private fun parseWombLabDate(description: String): LocalDate? {
         return try {
             val match = wombLabPattern.find(description) ?: return null
             val day = match.groupValues[1].toInt()
@@ -401,7 +355,7 @@ class CalendarViewModel @Inject constructor(
         }
     }
 
-    private fun parseSlashDateSafe(description: String): LocalDate? {
+    private fun parseSlashDate(description: String): LocalDate? {
         return try {
             val match = slashPattern.find(description) ?: return null
             val day = match.groupValues[1].toInt()
@@ -413,7 +367,7 @@ class CalendarViewModel @Inject constructor(
         }
     }
 
-    private fun parseItalianDateSafe(description: String): LocalDate? {
+    private fun parseItalianDate(description: String): LocalDate? {
         return try {
             val match = italianPattern.find(description) ?: return null
             val day = match.groupValues[1].toInt()
@@ -428,7 +382,6 @@ class CalendarViewModel @Inject constructor(
 
     fun onRefresh() {
         cacheBuilt = false
-        parsedDatesCache.clear()
         eventsByDateCache.clear()
 
         _uiState.value.userId?.let { userId ->
