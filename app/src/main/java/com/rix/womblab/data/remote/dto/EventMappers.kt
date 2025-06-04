@@ -120,7 +120,7 @@ private fun parseEventDateFromDetails(
                 parseDateFromDetails(dateDetails)
             }
         }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         LocalDateTime.now().plusDays(1)
     }
 }
@@ -142,7 +142,7 @@ private fun parseDateFromDetails(details: DateDetailsDto): LocalDateTime {
 
         val result = LocalDateTime.of(year, validMonth, validDay, validHour, validMinute, validSecond)
         result
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         LocalDateTime.now().plusDays(1)
     }
 }
@@ -151,7 +151,7 @@ private fun parseUtcDateString(utcDateString: String, timezoneString: String): L
     return try {
         val utcDateTime = LocalDateTime.parse(utcDateString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         convertUtcToLocal(utcDateTime, timezoneString)
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         LocalDateTime.now()
     }
 }
@@ -163,7 +163,7 @@ private fun convertUtcToLocal(utcDateTime: LocalDateTime, timezoneString: String
         val result = localZoned.toLocalDateTime()
 
         result
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         utcDateTime
     }
 }
@@ -172,10 +172,10 @@ private fun parseLocalDate(dateString: String): LocalDateTime {
     return try {
         val result = LocalDateTime.parse(dateString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         result
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         try {
             LocalDateTime.parse(dateString.replace(" ", "T"))
-        } catch (e2: Exception) {
+        } catch (_: Exception) {
             LocalDateTime.now()
         }
     }

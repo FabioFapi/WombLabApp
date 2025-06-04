@@ -194,7 +194,7 @@ class VenueDeserializer : JsonDeserializer<EventVenueDto?> {
                 }
                 else -> null
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }

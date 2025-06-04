@@ -30,7 +30,7 @@ class Converters {
     fun toStringList(value: String): List<String> {
         return try {
             json.decodeFromString<List<String>>(value)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             emptyList()
         }
     }

@@ -60,7 +60,7 @@ class LoginViewModel @Inject constructor(
 
                             val isRegistrationCompleted = try {
                                 authRepository.isRegistrationCompleted(firebaseUser.uid)
-                            } catch (e: Exception) {
+                            } catch (_: Exception) {
                                 false
                             }
 
@@ -100,10 +100,6 @@ class LoginViewModel @Inject constructor(
         )
     }
 
-    fun forceResetState() {
-        resetToLoggedOutState()
-    }
-
     fun signInWithEmail(email: String, password: String) {
         viewModelScope.launch {
             _loginState.value = _loginState.value.copy(
@@ -119,7 +115,7 @@ class LoginViewModel @Inject constructor(
 
                         val isRegistrationCompleted = try {
                             authRepository.isRegistrationCompleted(user.id)
-                        } catch (e: Exception) {
+                        } catch (_: Exception) {
                             false
                         }
 
@@ -242,7 +238,4 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    fun clearError() {
-        _loginState.value = _loginState.value.copy(error = null)
-    }
 }

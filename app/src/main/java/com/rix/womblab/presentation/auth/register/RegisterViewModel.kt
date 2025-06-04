@@ -4,7 +4,6 @@ import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rix.womblab.domain.model.User
-import com.rix.womblab.domain.model.UserPreferences
 import com.rix.womblab.domain.usecase.auth.GetCurrentUserUseCase
 import com.rix.womblab.domain.usecase.auth.LoginUseCase
 import com.rix.womblab.domain.usecase.auth.UpdateUserProfileUseCase
@@ -53,7 +52,7 @@ class RegisterViewModel @Inject constructor(
 
                     val isRegistrationCompleted = try {
                         authRepository.isRegistrationCompleted(firebaseUser.uid)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         false
                     }
 
@@ -187,7 +186,4 @@ class RegisterViewModel @Inject constructor(
         }
     }
 
-    fun clearError() {
-        _uiState.value = _uiState.value.copy(error = null)
-    }
 }
