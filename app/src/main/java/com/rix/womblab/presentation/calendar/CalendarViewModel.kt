@@ -12,7 +12,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.YearMonth
 import javax.inject.Inject
 
@@ -175,19 +174,19 @@ class CalendarViewModel @Inject constructor(
                     val existingEvents = eventsByDateCache[eventDate] ?: emptyList()
                     eventsByDateCache[eventDate] = existingEvents + event
 
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     try {
                         val fallbackDate = event.startDate.toLocalDate()
                         val existingEvents = eventsByDateCache[fallbackDate] ?: emptyList()
                         eventsByDateCache[fallbackDate] = existingEvents + event
-                    } catch (ex: Exception) {
+                    } catch (_: Exception) {
                     }
                 }
             }
 
             cacheBuilt = true
 
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             buildSimpleCache(events)
         }
     }
@@ -199,7 +198,7 @@ class CalendarViewModel @Inject constructor(
                 val date = event.startDate.toLocalDate()
                 val existingEvents = eventsByDateCache[date] ?: emptyList()
                 eventsByDateCache[date] = existingEvents + event
-            } catch (e: Exception) {
+            } catch (_: Exception) {
             }
         }
         cacheBuilt = true
@@ -219,7 +218,7 @@ class CalendarViewModel @Inject constructor(
                 selectedDate = date,
                 eventsForSelectedDate = eventsForDate
             )
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             _uiState.value = _uiState.value.copy(
                 selectedDate = date,
                 eventsForSelectedDate = emptyList(),
@@ -287,7 +286,7 @@ class CalendarViewModel @Inject constructor(
                     eventsByDateCache[date] = updatedEvents
                 }
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             _uiState.value = _uiState.value.copy(error = "Errore aggiornamento stato preferito")
         }
     }
@@ -300,12 +299,12 @@ class CalendarViewModel @Inject constructor(
                 _uiState.value.events.filter { event ->
                     try {
                         event.startDate.toLocalDate() == date
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         false
                     }
                 }
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             emptyList()
         }
     }
@@ -318,12 +317,12 @@ class CalendarViewModel @Inject constructor(
                 _uiState.value.events.any { event ->
                     try {
                         event.startDate.toLocalDate() == date
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         false
                     }
                 }
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
     }
@@ -338,7 +337,7 @@ class CalendarViewModel @Inject constructor(
 
             null
 
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
@@ -350,7 +349,7 @@ class CalendarViewModel @Inject constructor(
             val month = match.groupValues[2].toInt()
             val year = match.groupValues[3].toInt()
             LocalDate.of(year, month, day)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
@@ -362,7 +361,7 @@ class CalendarViewModel @Inject constructor(
             val month = match.groupValues[2].toInt()
             val year = match.groupValues[3].toInt()
             LocalDate.of(year, month, day)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
@@ -375,7 +374,7 @@ class CalendarViewModel @Inject constructor(
             val year = match.groupValues[3].toInt()
             val month = monthNames[monthName] ?: return null
             LocalDate.of(year, month, day)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
@@ -390,7 +389,4 @@ class CalendarViewModel @Inject constructor(
         loadEvents()
     }
 
-    fun clearError() {
-        _uiState.value = _uiState.value.copy(error = null)
-    }
 }

@@ -150,16 +150,4 @@ class ProfileViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(logoutSuccess = false)
     }
 
-    fun onProfileUpdated() {
-        viewModelScope.launch {
-            try {
-                val updatedProfile = preferencesUtils.getUserProfile()
-                _uiState.value = _uiState.value.copy(
-                    userProfile = updatedProfile
-                )
-            } catch (e: Exception) {
-                android.util.Log.e("ProfileViewModel", "Errore aggiornamento profilo", e)
-            }
-        }
-    }
 }

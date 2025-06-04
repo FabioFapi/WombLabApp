@@ -362,7 +362,7 @@ private fun SelectedDateSection(
 
                 else -> {
                     Text(
-                        text = "${eventsForDate.size} evento${if (eventsForDate.size > 1) "i" else ""}",
+                        text = "${eventsForDate.size} event${if (eventsForDate.size > 1) "i" else "o"}",
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 12.dp)

@@ -104,10 +104,6 @@ class EditProfileViewModel @Inject constructor(
         }
     }
 
-    fun clearError() {
-        _uiState.value = _uiState.value.copy(error = null)
-    }
-
     fun clearUpdateSuccess() {
         _uiState.value = _uiState.value.copy(updateSuccess = false)
     }
